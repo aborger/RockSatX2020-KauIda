@@ -70,3 +70,5 @@ class Battery(Device):
 class Ricoh(Device):
 
 class Boom(Device):
+
+class Lock(Device):
