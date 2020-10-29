@@ -15,7 +15,7 @@ TX_CHAR_UUID      = uuid.UUID('6E400002-B5A3-F393-E0A9-E50E24DCCA9E')
 RX_CHAR_UUID      = uuid.UUID('6E400003-B5A3-F393-E0A9-E50E24DCCA9E')
 
 SENSE_SERVICE_UUID = uuid.UUID('00006969-6969-6969-6969-696969696969')
-RSSI_CHAR_UUID    = uuid.UUID('00000420-0000-1000-8000-00805f9b34fb')
+RSSI_CHAR_UUID    = uuid.UUID('00002a05-0000-1000-8000-00805f9b34fb')
 TEMP_CHAR_UUID    = uuid.UUID('00000421-0000-1000-8000-00805f9b34fb')
 PRESS_CHAR_UUID   = uuid.UUID('00000422-0000-1000-8000-00805f9b34fb')
 HUM_CHAR_UUID     = uuid.UUID('00000423-0000-1000-8000-00805f9b34fb')
@@ -44,16 +44,16 @@ def main():
 
     # Scan for UART devices.
     #print('Searching for UART device...')
-    try:
-        adapter.start_scan()
-        # Search for the first UART device found (will time out after 60 seconds
-        # but you can specify an optional timeout_sec parameter to change it).
-        device = UART.find_device()
-        if device is None:
-            raise RuntimeError('Failed to find UART device!')
-    finally:
-        # Make sure scanning is stopped before exiting.
-        adapter.stop_scan()
+
+    adapter.start_scan()
+    # Search for the first UART device found (will time out after 60 seconds
+    # but you can specify an optional timeout_sec parameter to change it).
+    device = UART.find_device()
+    if device is None:
+        raise RuntimeError('Failed to find UART device!')
+
+    # Make sure scanning is stopped before exiting.
+    adapter.stop_scan()
 
     #print('Connecting to device...')
     device.connect()  # Will time out after 60 seconds, specify timeout_sec parameter
@@ -66,14 +66,10 @@ def main():
     # time out after 60 seconds (specify timeout_sec parameter to override).
     #print('Discovering services...')
 
-    try:
-        print('Discovering...')
-	device.discover([SENSE_SERVICE_UUID],[RSSI_CHAR_UUID]) # ,TEMP_CHAR_UUID,PRESS_CHAR_UUID,
-	#HUM_CHAR_UUID,GAS_CHAR_UUID,ALT_CHAR_UUID])
-    except:
-        print('There was error')
-    finally:
-        print('Discovery finished...')
+    print('Discovering...')
+    device.discover([SENSE_SERVICE_UUID],[RSSI_CHAR_UUID]) # ,TEMP_CHAR_UUID,PRESS_CHAR_UUID,
+			#HUM_CHAR_UUID,GAS_CHAR_UUID,ALT_CHAR_UUID]) 
+    print('Discovery finished...')
 
     # Once service discovery is complete create an instance of the service
     # and start interacting with it.
@@ -81,20 +77,16 @@ def main():
     # Open a file to write to
     file = open("rfOutput.csv","w")
 
-    try:
-	print("Finding sensors")
-	sensors  = device.find_service(SENSE_SERVICE_UUID)
-	rssi_char     = sensors.find_characteristic(RSSI_CHAR_UUID)
-	temp_char     = sensors.find_characteristic(TEMP_CHAR_UUID)
-	pressure_char = sensors.find_characteristic(PRESS_CHAR_UUID)
-	humidity_char = sensors.find_characteristic(HUM_CHAR_UUID)
-	gas_char      = sensors.find_characteristic(GAS_CHAR_UUID)
-	alt_char      = sensors.find_characteristic(ALT_CHAR_UUID)
-    except:
-	print('Error occured!')
-	raise
-    finally:
-	print('Sensors discovered succesfully')
+    print("Finding sensors")
+    sensors  = device.find_service(SENSE_SERVICE_UUID)
+    if sensors is None:
+        raise RuntimeError('Failed to find sensor service!')
+    rssi_char     = sensors.find_characteristic(RSSI_CHAR_UUID)
+    #temp_char     = sensors.find_characteristic(TEMP_CHAR_UUID)
+    #pressure_char = sensors.find_characteristic(PRESS_CHAR_UUID)
+    #humidity_char = sensors.find_characteristic(HUM_CHAR_UUID)
+    #gas_char      = sensors.find_characteristic(GAS_CHAR_UUID)
+    #alt_char      = sensors.find_characteristic(ALT_CHAR_UUID)
 
 
     def unwrap(val):
@@ -103,11 +95,11 @@ def main():
 	    #return [unwrap(x) for x in val]
 	    for x in val:
 	        unwrapped_str = unwrapped_str + unwrap(x)
-	    return unwrapped_str
-    	if isinstance(val, dbus.Byte):
-	    return str(val)
-    	    #print ('Error: Recieved different type!')
-	    #print(val)
+		return unwrapped_str
+    		if isinstance(val, dbus.Byte):
+	     	    return str(val)
+    		#print ('Error: Recieved different type!')
+		#print(val)
 
     timeout = 20 # 10 seconds
 
@@ -116,15 +108,16 @@ def main():
     #print('RSSI:  TEMP:  PRESSURE:  HUMIDITY:  GAS:  ALT: ')
     file.write('RSSI (dB),TEMP (*C),PRESSURE (hPa),HUMIDITY (%),GAS (KOhms),ALT (m)\n')
     while time.time() < timeout_start + timeout:
-        rssi     = str(unwrap(rssi_char.read_value()))
-	temp     = str(unwrap(temp_char.read_value()))
-	pressure = str(unwrap(pressure_char.read_value()))
-	humidity = str(unwrap(humidity_char.read_value()))
-	gas      = str(unwrap(gas_char.read_value()))
-	alt	 = str(unwrap(alt_char.read_value()))
 
-	#print(rssi)
-	print(' ' + rssi + '    ' + temp + '   ' + pressure + '    ' + humidity + '    ' + gas + '    ' + alt)
+        rssi     = str(unwrap(rssi_char.read_value()))
+        temp     = 0 #str(unwrap(temp_char.read_value()))
+        pressure = 0 #str(unwrap(pressure_char.read_value()))
+        humidity = 0 #str(unwrap(humidity_char.read_value()))
+        gas      = 0 #str(unwrap(gas_char.read_value()))
+        alt      = 0 #str(unwrap(alt_char.read_value()))
+
+        print(rssi)
+        #print(' ' + rssi + '    ' + temp + '   ' + pressure + '    ' + humidity + '    ' + gas + '    ' + alt)
 	file.write(rssi + ',' + temp + ',' + pressure + ',' + humidity + ',' + gas + ',' + alt + '\n')
 
     print('Disconnecting...')
