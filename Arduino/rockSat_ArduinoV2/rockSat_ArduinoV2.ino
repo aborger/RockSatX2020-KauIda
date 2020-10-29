@@ -16,17 +16,16 @@
  */
 
 #include <Arduino.h>
-#include <SPI.h>
 #include "Adafruit_BLE.h"
-#include "Adafruit_BluefruitLE_SPI.h"
 #include "Adafruit_BluefruitLE_UART.h"
 
 #include <Adafruit_Sensor.h>
 #include "Adafruit_BME680.h"
 
 
-// Bluefruit uses Serial (RX and TX pins)
-Adafruit_BluefruitLE_UART ble(Serial, -1);
+SoftwareSerial bluefruitSS = SoftwareSerial(10, 9);
+
+Adafruit_BluefruitLE_UART ble(bluefruitSS, -1, 11, -1);
 
 
 //                   Setup Sensor
@@ -36,36 +35,41 @@ Adafruit_BluefruitLE_UART ble(Serial, -1);
 Adafruit_BME680 bme; // uses I2C
 /*======================================================*/
 
-int check = 6; // used for debug
 
 //                    Setup
 /*=======================================================*/
 void setup() {
-  // Set debug pins to output
-  pinMode(check, OUTPUT);
   pinMode(LED_BUILTIN, OUTPUT);
+  
+  Serial.begin(115200);
 
   // If bluefruit is not found, onboard led is constantly on
   if(!ble.begin(false)) {
-    digitalWrite(LED_BUILTIN, HIGH);
+    Serial.println("Cant find bluefruit!");
   }
-  // Turn onboard led off
-  digitalWrite(LED_BUILTIN, LOW);
 
   // If sensor is not found, debug pin is constantly on
   if(!bme.begin()) {
-    digitalWrite(check, HIGH);
-    while(1);
+    Serial.println("Sensor not found!");
+  }
+  else {
+    Serial.println("Sensor found!");
   }
 
-  // while no device is connected flash onboard led
+  if ( !ble.begin(false) )
+  {
+    Serial.println("Couldnt find bluefruit!");
+  }
+  else {
+    Serial.println("Bluefruit found!");
+  }
   while (!ble.isConnected()) {
+    Serial.println("Waiting for connection...");
     digitalWrite(LED_BUILTIN, HIGH);
     delay(500);
-    digitalWrite(LED_BUILTIN, LOW);
-    delay(500);
   }
-
+  digitalWrite(LED_BUILTIN, LOW);
+  Serial.println("Connected!!");
 }
 /*======================================================*/
 
@@ -77,14 +81,14 @@ char c;
 
 /*=======================================================*/
 void loop() {
-  // debug pin will flash if sending data
-  digitalWrite(check, HIGH); 
-
+  Serial.println("on loop");
   //                                     RSSI
   //************************************************************************************//
-  ble.println(F("AT+BLEGETRSSI")); // rssi from bluefruit is sent to TX
+  bool suc = ble.sendCommandCheckOK(F("AT+BLEGETRSSI")); // rssi from bluefruit is sent to TX
+  Serial.println(suc);
   while ( ble.available() )
   {
+    Serial.println("available");
     c = ble.read(); // read individual rssi character
     // if character is number add to current char in char array
     if (c >= '0' && c <= '9') {
@@ -107,7 +111,7 @@ void loop() {
   //*********************************************************************************/
   // Sets all sensor characteristics to their respective values
   // Temp
-  /*
+  
   ble.print(F("AT+GATTCHAR=2,"));
   ble.println(bme.temperature);
   // Pressure
@@ -125,7 +129,6 @@ void loop() {
 
   //**********************************************************************************/
   // flashes debug led
-  digitalWrite(check, LOW);
   delay(500);
 }
 /*=====================================================================================*/

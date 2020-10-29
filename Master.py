@@ -2,52 +2,84 @@
 # Sets up each event in a thread
 import threading
 from RPiMaster.detect import Detect
-import RPiMaster.device
+import RPiMaster.device as device
+from time import sleep
+import sys
 
-gse = Detect(15, 18)
-te1 = Detect(16, 19)
+gse = Detect('GSE', 1, 18) #15, 18
+te1 = Detect('TE1', 5, 19) #16, 19
+door = Detect('Door Shut', 15, 20)
 
-gopro = device.Gopro()
-rf = device.Rf()
-imu = device.IMU()
-battery = device.Battery()
-ricoh = device.Ricoh()
-boom = device.Boom()
+Gopro = device.gopro('Gopro')
+rf = device.rf('rf')
+battery = device.battery('battery')
+ricoh = device.ricoh('ricoh')
+boom = device.Boom(3)
+door_lock = device.lock('Door Lock')
 
 
-def setup()
+def setup():
 	rf.setup()
-	gopro.setup()
+	Gopro.setup()
+
 	
 def GSE():
 	gse.wait_for_detect()
 	# Continues after GSE is detected
 	Gopro.activate()
-	imu.activate()
+
 
 def TE1():
+
 	# Continues after TE1 is detected
 	te1.wait_for_detect()
 	battery.activate()
-	ricoh.activate()
+	ricoh.activate() # Turn on
 	rf.activate()
-	wait(5)
+	sleep(1) # 5
 	boom.activate()
-	wait(154)
+	sleep(5) # 154
 	boom.deactivate()
-	wait(40)
+	sleep(4) # 40
 	ricoh.deactivate()
-	transfer_video()
 	rf.deactivate()
+
+		
+def Door_Lock():
+	door.wait_for_detect()
+	door_lock.activate()
+
+	
 	
 if __name__ == "__main__":
-	GSE_detect = threading.Thread(target=GSE)
-	TE1_detect = threading.Thread(target=TE1)
+	try:
+		Setup = threading.Thread(target=setup)
+		GSE_detect = threading.Thread(target=GSE)
+		TE1_detect = threading.Thread(target=TE1)
+		Door_lock = threading.Thread(target=Door_Lock)
+		
+		Setup.daemon = True
+		GSE_detect.daemon = True
+		TE1_detect.daemon = True
+		Door_Lock.daemon = True
+
+
+		Setup.start()
+		GSE_detect.start()
+		TE1_detect.start()
+		Door_lock.start()
+
+		'''
+		Setup.join()
+		GSE_detect.join()
+		TE1_detect.join()
+		Door_lock.join()
+		'''
+		while True: sleep(100)
+	except (KeyboardInterrupt, SystemExit):
+		print('STOPPPPP')
 	
-	GSE_detect.start()
-	TE1_detect.start()
-	
-	GSE_detect.join()
-	TE1_detect.join()
+
+
 	
 	print('Mission Complete')
