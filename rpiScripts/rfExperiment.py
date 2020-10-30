@@ -28,6 +28,7 @@ ALT_CHAR_UUID     = uuid.UUID('00000425-0000-1000-8000-00805f9b34fb')
 # of automatically though and you just need to provide a main function that uses
 # the BLE provider.
 def main():
+
     # Clear any cached data because both bluez and CoreBluetooth have issues with
     # caching data and it going stale.
     ble.clear_cached_data()
@@ -131,6 +132,7 @@ def main():
     # Make sure device is disconnected on exit.
     device.disconnect()
     file.close()
+
 
 
 # Initialize the BLE system.  MUST be called before other BLE calls!
