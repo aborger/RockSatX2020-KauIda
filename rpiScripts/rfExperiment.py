@@ -28,51 +28,51 @@ ALT_CHAR_UUID     = uuid.UUID('00000425-6969-6969-6969-696969696969')
 # of automatically though and you just need to provide a main function that uses
 # the BLE provider.
 def main():
-    # Clear any cached data because both bluez and CoreBluetooth have issues with
-    # caching data and it going stale.
-    ble.clear_cached_data()
+	# Clear any cached data because both bluez and CoreBluetooth have issues with
+	# caching data and it going stale.
+	ble.clear_cached_data()
 
-    # Get the first available BLE network adapter and make sure it's powered on.
-    adapter = ble.get_default_adapter()
-    adapter.power_on()
-    #print('Using adapter: {0}'.format(adapter.name))
+	# Get the first available BLE network adapter and make sure it's powered on.
+	adapter = ble.get_default_adapter()
+	adapter.power_on()
+	#print('Using adapter: {0}'.format(adapter.name))
 
-    # Disconnect any currently connected UART devices.  Good for cleaning up and
-    # starting from a fresh state.
-    #print('Disconnecting any connected UART devices...')
-    ble.disconnect_devices()
+	# Disconnect any currently connected UART devices.  Good for cleaning up and
+	# starting from a fresh state.
+	#print('Disconnecting any connected UART devices...')
+	ble.disconnect_devices()
 
-    # Scan for UART devices.
-    #print('Searching for UART device...')
-    try:
-        adapter.start_scan()
-        # Search for the first UART device found (will time out after 60 seconds
-        # but you can specify an optional timeout_sec parameter to change it).
-        device = UART.find_device()
-        if device is None:
-            raise RuntimeError('Failed to find UART device!')
-    finally:
-        # Make sure scanning is stopped before exiting.
-        adapter.stop_scan()
+	# Scan for UART devices.
+	#print('Searching for UART device...')
+	try:
+		adapter.start_scan()
+		# Search for the first UART device found (will time out after 60 seconds
+		# but you can specify an optional timeout_sec parameter to change it).
+		device = UART.find_device()
+		if device is None:
+			raise RuntimeError('Failed to find UART device!')
+	finally:
+		# Make sure scanning is stopped before exiting.
+		adapter.stop_scan()
 
-    #print('Connecting to device...')
-    device.connect()  # Will time out after 60 seconds, specify timeout_sec parameter
-                      # to change the timeout.
-    # Once connected do everything else in a try/finally to make sure the device
-    # is disconnected when done.
-    try:
-        # Wait for service discovery to complete for the UART service.  Will
+	#print('Connecting to device...')
+	device.connect()  # Will time out after 60 seconds, specify timeout_sec parameter
+	# to change the timeout.
+
+	# Once connected do everything else in a try/finally to make sure the device
+	# is disconnected when done.
+
+	# Wait for service discovery to complete for the UART service.  Wil
 	# time out after 60 seconds (specify timeout_sec parameter to override).
-        #print('Discovering services...')
-
-        try:
+	#print('Discovering services...')
+	try:
 		device.discover([SENSE_SERVICE_UUID],[RSSI_CHAR_UUID,TEMP_CHAR_UUID,PRESS_CHAR_UUID,
-			HUM_CHAR_UUID,GAS_CHAR_UUID,ALT_CHAR_UUID])
+		HUM_CHAR_UUID,GAS_CHAR_UUID,ALT_CHAR_UUID])
 	finally:
 		#print('Discovery finished...')
 		pass
-        # Once service discovery is complete create an instance of the service
-        # and start interacting with it.
+	# Once service discovery is complete create an instance of the service
+	# and start interacting with it.
 
 	# Open a file to write to
 	file = open("rfOutput.csv","w")
@@ -92,27 +92,27 @@ def main():
 
 
 	def unwrap(val):
-       		if isinstance(val, (dbus.Array, list, tuple)):
+		if isinstance(val, (dbus.Array, list, tuple)):
 			hex_ans = ''
 			#return [unwrap(x) for x in val]
 			for x in val:
 				hex_ans = hex_ans + unwrap(x)
 			return int(hex_ans, 16)
-    		if isinstance(val, dbus.Byte):
+		if isinstance(val, dbus.Byte):
 			hex_string = str(bytes(hex(val)))
-	     		return hex_string.replace('0x','')
-    		print ('Error: Recieved different type!')
+			return hex_string.replace('0x','')
+		print ('Error: Recieved different type!')
 		return val
 
 	timeout = 10 # 10 seconds
 
-        timeout_start = time.time()
+	timeout_start = time.time()
 	print('RF Experiment has started')
 	#print('RSSI:  TEMP:  PRESSURE:  HUMIDITY:  GAS:  ALT: ')
 	file.write('RSSI (dB),TEMP (*C),PRESSURE (hPa),HUMIDITY (%),GAS (KOhms),ALT (m)\n')
 	while time.time() < timeout_start + timeout:
 
-       		rssi     = str(unwrap(rssi_char.read_value()))
+		rssi     = str(unwrap(rssi_char.read_value()))
 		temp     = str(float(unwrap(temp_char.read_value()))/100)
 		pressure = str(float(unwrap(pressure_char.read_value())))
 		humidity = str(float(unwrap(humidity_char.read_value()))/100)
@@ -120,12 +120,12 @@ def main():
 		alt	 = str(float(unwrap(alt_char.read_value()))/100)
 
 
-		#print(' ' + rssi + '    ' + temp + '   ' + pressure + '    ' + humidity + '    ' + gas + '    ' + alt)
-		file.write(rssi + ',' + temp + ',' + pressure + ',' + humidity + ',' + gas + ',' + alt + '\n')
-    finally:
+		print(' ' + rssi + '    ' + temp + '   ' + pressure + '    ' + humidity + '    ' + gas + '    ' + alt)
+		#file.write(rssi + ',' + temp + ',' + pressure + ',' + humidity + ',' + gas + ',' + alt + '\n')
+
 	print('Disconnecting...')
-        # Make sure device is disconnected on exit.
-        device.disconnect()
+	# Make sure device is disconnected on exit.
+	device.disconnect()
 	file.close()
 
 
