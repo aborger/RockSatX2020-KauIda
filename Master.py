@@ -6,19 +6,18 @@ from time import sleep
 
 
 te1 = detect('TE1', 5, 19) #16, 19
-door = detect('Door Shut', 3)
+door = detect('Door Shut', 5)
 
 Gopro = gopro('Gopro')
 rf = rf('rf')
 battery = battery('battery')
 ricoh = ricoh('ricoh')
-boom = Boom(3)
+boom = Boom(5)
 door_lock = lock('Door Lock')
 
 Battery = threading.Thread(target=battery.activate)
 Ricoh = threading.Thread(target=ricoh.activate)
 Rf = threading.Thread(target=ricoh.activate)
-serial = threading.Thread(target=
 
 Battery.daemon = True
 Ricoh.daemon = True
