@@ -1,4 +1,4 @@
-#!user/bin/env  python
+y#!user/bin/env  python
 
 #This python program looks for TE2 to turn on
 #by detecting a rising edge.

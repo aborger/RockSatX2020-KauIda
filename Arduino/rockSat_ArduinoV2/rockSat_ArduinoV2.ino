@@ -1,4 +1,4 @@
-/* Programmed by Aaron Borger
+ /* Programmed by Aaron Borger
  * Takes sensor data and rssi and outputs to bluetooth peripherals on Bluefruit LE UART Friend
  * To be used with Pro Tinker 3V, pins vary on other boards
  * BlueFruit pins: 
@@ -43,11 +43,6 @@ void setup() {
   
   Serial.begin(115200);
 
-  // If bluefruit is not found, onboard led is constantly on
-  if(!ble.begin(false)) {
-    Serial.println("Cant find bluefruit!");
-  }
-
   // If sensor is not found, debug pin is constantly on
   if(!bme.begin()) {
     Serial.println("Sensor not found!");
@@ -56,18 +51,20 @@ void setup() {
     Serial.println("Sensor found!");
   }
 
-  if ( !ble.begin(false) )
+  if ( !ble.begin(true) )
   {
     Serial.println("Couldnt find bluefruit!");
   }
   else {
     Serial.println("Bluefruit found!");
   }
-  while (!ble.isConnected()) {
-    Serial.println("Waiting for connection...");
-    digitalWrite(LED_BUILTIN, HIGH);
+  digitalWrite(LED_BUILTIN, HIGH);
+
+  Serial.println("Waiting for connection...");
+  while (! ble.isConnected()) {
     delay(500);
   }
+  
   digitalWrite(LED_BUILTIN, LOW);
   Serial.println("Connected!!");
 }
@@ -106,7 +103,7 @@ void loop() {
   for (int a = 0; a < 5; a++) {
     value_string[a] = "";
   }
-  
+  digitalWrite(LED_BUILTIN, HIGH);
   //                                   Sensors
   //*********************************************************************************/
   // Sets all sensor characteristics to their respective values
@@ -128,7 +125,7 @@ void loop() {
   ble.println(bme.readAltitude(SEALEVELPRESSURE_HPA));
 
   //**********************************************************************************/
-  // flashes debug led
+  digitalWrite(LED_BUILTIN, LOW);
   delay(500);
 }
 /*=====================================================================================*/
