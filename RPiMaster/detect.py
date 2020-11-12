@@ -4,13 +4,14 @@ from time import sleep
 GPIO.setmode(GPIO.BCM)
 
 class Detect:
-	def __init__(self, name, input, latch=-1):
+	def __init__(self, name, input=16, latch=19):
 		self.name = name
-		GPIO.setup(input, GPIO.IN, pull_up_down = GPIO.PUD_DOWN)
-		GPIO.setup(latch, GPIO.OUT)
 		self.input = input
 		self.latch = latch
-		
+		GPIO.setup(self.input, GPIO.IN, pull_up_down = GPIO.PUD_DOWN)
+		GPIO.setup(self.latch, GPIO.OUT)
+
+
 	def wait_for_detect(self):
 		print('Waiting to detect ' + self.name)
 		GPIO.wait_for_edge(self.input, GPIO.RISING)
@@ -19,7 +20,7 @@ class Detect:
 			GPIO.output(self.latch, GPIO.LOW)
 
 class detect:
-	def __init__(self, name, input, latch=-1):
+	def __init__(self, name, input=5, latch=-1):
 		self.name = name
 		self.wait_time = input
 
