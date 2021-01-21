@@ -22,6 +22,8 @@ The Bluefruit's bluetooth services and characteristics must be setup before it i
 Once setup the rockSat_ArduinoV2 program can be uploaded and ran on the Arduino. This program waits for a connection and then repeatedly writes the sensor data to the bluetooth characteristics until powered off.
 
 # Raspberry Pi and Mission Control
+
+### Devices
 The Raspberry Pi must control many different devices such as (The Gopro, RF receiver, Ricoh 360 degree camera, Scissor Boom, and door lock). These devices all inherit from the Device class which is found in ```RPiMaster/device.py``` The Device class demonstrates the structure each child class follows. The device class is as follows:
 
 ```python
@@ -40,7 +42,7 @@ class Device:
 		print(self.name + 'stopped immediately!')
  ```
  
-As seen each device has a name and three methods (activate, deactivate, and emergency). Each child may override these methods. These methods are the only public methods, they are the methods called in the Mission Control script. Some devices contain other private supporting methods.
+As seen above each device has a name and three methods (activate, deactivate, and emergency). Each child may override these methods. These methods are the only public methods, they are the methods called in the Mission Control script. Some devices contain other private supporting methods.
 
-
- 
+### Detections
+There are several signals that must be detected during the mission such as TE1 a timing signal from the rocket and a door shut signal from a limit switch. The Detect class waits for the low to high signal on a GPIO pin and has the ability to output a signal after the detection. The Detect class can be found in the ```RPIMaster/detect.py``` file.
