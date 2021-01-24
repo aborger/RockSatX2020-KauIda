@@ -1,0 +1,2 @@
+compile: gcc -Wall -o telem telemetry.c -lwiringPi
+run: ./telem
