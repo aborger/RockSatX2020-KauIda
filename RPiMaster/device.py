@@ -221,13 +221,13 @@ class Boom(Device):
 											# if you do not have a switch across the two pin header then fit the jumper
 
 	def activate(self, step):
-		self.DIABLO.SetMotor1(-1.0) # Motor turns on and boom starts extending
+		self.DIABLO.SetMotor1(+1.0) # Motor turns on and boom starts extending
 		sleep(step) # change to rotation count DIABLO.EncoderMoveMotor
 		self.DIABLO.SetMotor1(0.0) # Motor turns off and boom stays extended
 		#self.DIABLO.EncoderMoveMotor1(1)
 
 	def retract(self, step):
-		self.DIABLO.SetMotor1(+1.0)
+		self.DIABLO.SetMotor1(-1.0)
 		sleep(step)
 
 	def deactivate(self):
@@ -257,5 +257,12 @@ class boom(Device):
 #---------------------------------------------------------------#
 #				Lock				#
 #---------------------------------------------------------------#
+class Lock(Device):
+	def __init__(self):
+		super().__init__('Lock')
+		GPIO.setup(22, GPIO.OUT)
+		GPIO.output(22, 1)
+
+
 class lock(Device):
 	pass

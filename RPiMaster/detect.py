@@ -9,7 +9,8 @@ class Detect:
 		self.input = input
 		self.latch = latch
 		GPIO.setup(self.input, GPIO.IN, pull_up_down = GPIO.PUD_DOWN)
-		GPIO.setup(self.latch, GPIO.OUT)
+		if self.latch is not -1:
+			GPIO.setup(self.latch, GPIO.OUT)
 
 
 	def wait_for_detect(self):

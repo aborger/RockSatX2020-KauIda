@@ -8,8 +8,8 @@ NUM_EXTENSIONS = 5
 EXTENSION_PERIOD = 1
 
 # Initializing detects
-te1 = Detect('TE1') #16, 19
-door = detect('Door Shut', 1)
+te1 = Detect('TE1', 16, 19) #16, 19
+door = Detect('Door Shut', 27, -1)
 
 # Initializing devices
 gopro = Gopro('Gopro')
@@ -17,7 +17,7 @@ rf = Rf('rf')
 battery = battery('battery')
 ricoh = ricoh('ricoh')
 boom = Boom(5)
-door_lock = lock('Door Lock')
+door_lock = Lock()
 
 # Setup threads
 Rf_setup = threading.Thread(target=rf.setup)
@@ -83,4 +83,3 @@ boom.deactivate()
 ricoh.deactivate()
 Gopro_deactivate.start()
 Rf_deactivate.start()
-
