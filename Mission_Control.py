@@ -70,7 +70,7 @@ while extension > 0:
 	RF = threading.Thread(target=rf.activate)
 	RF.daemon = True
 	RF.start()
-	boom.retract(EXTENSION_PERIOD)
+	boom.deactivate(EXTENSION_PERIOD)
 	extension -= 1
 
 # Continues after door shuts
@@ -79,7 +79,7 @@ door_lock.activate()
 #-------------------------------------------------------#
 #			Deactivate			#
 #-------------------------------------------------------#
-boom.deactivate()
+boom.shutdown()
 ricoh.deactivate()
 Gopro_deactivate.start()
 Rf_deactivate.start()

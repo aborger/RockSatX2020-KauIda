@@ -14,7 +14,7 @@ power.off()
 rec.off()
 gp_enable.off()
 
-#gp_enable.on()	#high, closes relay
+gp_enable.on()	#high, closes relay
 
 #This section powers on GoPro
 print('Power on...')

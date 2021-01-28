@@ -17,8 +17,8 @@ class Device:
 	def deactivate(self):
 		print('Deactivating ' + self.name + '...')
 
-	def emergency(self):
-		print(self.name + 'stopped immediately!')
+	def shutoff(self):
+		print('Shutting down ' + self.name + '...')
 
 #---------------------------------------------------------------#
 #				GoPro				#
@@ -33,20 +33,22 @@ class Gopro(Device):
 		self.sleep = sleep
 
 
-		self.power = LED(21)
+		self.power = LED(20)
 		self.rec = LED(26)
 		self.gp_enable = LED(13)
 
+
+	def __power(self):
+		self.power.on()
+		self.sleep(1)
 		self.power.off()
+		self.sleep(1)
+		self.gp_enable.on()
+
+	def __record(self):
 		self.rec.off()
-		self.gp_enable.off()
-
-		self.gp_enable.on()	#high, closes relay
-
-		self.power.on() #turn on Q3 so GPPower goes to  gnd
-		self.sleep(1)
-		self.power.off()        #turn off Q3 so GPPower floats
-		self.sleep(1)
+		self.sleep(5)
+		self.rec.on()
 
 	def activate(self):
 		super().activate()
@@ -84,16 +86,16 @@ class Gopro(Device):
 class rf:
 	pass
 class Rf(Device):
-	def unwrap(self, val):
+	def __unwrap(self, val):
 		if isinstance(val, (dbus.Array, list, tuple)):
 			unwrapped_str = ''
 			for x in val:
-				unwrapped_str = unwrapped_str + self.unwrap(x)
+				unwrapped_str = unwrapped_str + self.__unwrap(x)
 			return unwrapped_str
 		if isinstance(val, dbus.Byte):
 			return str(val)
 
-	def setup_thread(self):
+	def __setup_thread(self):
 		# Service and Character UUID's
 		UART_SERVICE_UUID = uuid.UUID('6E400001-B5A3-F393-E0A9-E50E24DCCA9E')
 		TX_CHAR_UUID      = uuid.UUID('6E400002-B5A3-F393-E0A9-E50E24DCCA9E')
@@ -153,29 +155,29 @@ class Rf(Device):
 	def setup(self):
 		self.ble = Adafruit_BluefruitLE.get_provider()
 		self.ble.initialize()
-		self.ble.run_mainloop_with(self.setup_thread)
+		self.ble.run_mainloop_with(self.__setup_thread)
 
-	def activate_thread(self):
-		rssi     = str(self.unwrap(self.chars["rssi"].read_value()))
-		temp     = str(self.unwrap(self.chars["temp"].read_value()))
-		pressure = str(self.unwrap(self.chars["pressure"].read_value()))
-		humidity = str(self.unwrap(self.chars["humidity"].read_value()))
-		gas      = str(self.unwrap(self.chars["gas"].read_value()))
-		alt	 = str(self.unwrap(self.chars["alt"].read_value()))
+	def __activate_thread(self):
+		rssi     = str(self.__unwrap(self.chars["rssi"].read_value()))
+		temp     = str(self.__unwrap(self.chars["temp"].read_value()))
+		pressure = str(self.__unwrap(self.chars["pressure"].read_value()))
+		humidity = str(self.__unwrap(self.chars["humidity"].read_value()))
+		gas      = str(self.__unwrap(self.chars["gas"].read_value()))
+		alt	 = str(self.__unwrap(self.chars["alt"].read_value()))
 		file = open("rfOutput.csv", "a") 
 		print(' ' + rssi + '    ' + temp + '   ' + pressure + '    ' + humidity + '    ' + gas + '    ' + alt)
 		file.write(rssi + ',' + temp + ',' + pressure + ',' + humidity + ',' + gas + ',' + alt + '\n')
 		file.close()
 
 	def activate(self):
-		self.ble.run_mainloop_with(self.activate_thread)
+		self.ble.run_mainloop_with(self.__activate_thread)
 
-	def deactivate_thread(self):
+	def __deactivate_thread(self):
 		self.device.disconnect()
 
 	def deactivate(self):
 		super().deactivate()
-		self.ble.run_mainloop_with(self.deactivate_thread)
+		self.ble.run_mainloop_with(self.__deactivate_thread)
 
 
 #---------------------------------------------------------------#
@@ -226,16 +228,15 @@ class Boom(Device):
 		self.DIABLO.SetMotor1(0.0) # Motor turns off and boom stays extended
 		#self.DIABLO.EncoderMoveMotor1(1)
 
-	def retract(self, step):
+	def deactivate(self, step):
 		self.DIABLO.SetMotor1(-1.0)
 		sleep(step)
 
-	def deactivate(self):
+	def shutdown(self):
 		self.DIABLO.SetMotor1(0.0) # Turn off motor
 		print('Boom retracted...')
 
-	def emergency(self):
-		self.DIABLO.MotorsOff()
+
 
 class boom(Device):
 	def __init__(self, extend_time):
@@ -247,10 +248,10 @@ class boom(Device):
 		sleep(self.extend_time)
 		print('Holding boom at extension...')
 
-	def retract(self):
+	def deactivate(self):
 		print('Retracting boom...')
 
-	def deactivate(self):
+	def shutdown(self):
 		print('Boom retracted...')
 
 
