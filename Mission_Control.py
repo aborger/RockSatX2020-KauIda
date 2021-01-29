@@ -14,17 +14,15 @@ door = Detect('Door Shut', 27, -1)
 # Initializing devices
 gopro = Gopro('Gopro')
 rf = Rf('rf')
-battery = battery('battery')
 ricoh = ricoh('ricoh')
 boom = Boom(5)
 door_lock = Lock()
 
 # Setup threads
 Rf_setup = threading.Thread(target=rf.setup)
-Gopro_setup = threading.Thread(target=gopro.activate)
+Gopro_activate = threading.Thread(target=gopro.activate)
 
 # Main threads
-Battery = threading.Thread(target=battery.activate)
 Ricoh = threading.Thread(target=ricoh.activate)
 
 # deactivate threads
@@ -32,24 +30,22 @@ Rf_deactivate = threading.Thread(target=rf.deactivate)
 Gopro_deactivate = threading.Thread(target=gopro.deactivate)
 
 # daemons
-Battery.daemon = True
 Ricoh.daemon = True
 
 #-----------------------------------------------#
 #			Setup			#
 #-----------------------------------------------#
 Rf_setup.start()
-Gopro_setup.start()
+Gopro_activate.start()
 
 Rf_setup.join()
-Gopro_setup.join()
+Gopro_activate.join()
 
 # Continues after TE1 is detected
 te1.wait_for_detect()
 #-----------------------------------------------#
 #			Main			#
 #-----------------------------------------------#
-Battery.start()
 Ricoh.start()
 
 # Extend boom and take rf measurements

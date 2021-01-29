@@ -37,43 +37,35 @@ class Gopro(Device):
 		self.rec = LED(26)
 		self.gp_enable = LED(13)
 
+		self.power.off()
+		self.rec.off()
+		self.gp_enable.off()
 
-	def __power(self):
+
+	def activate(self):
+		super().activate()
+
+		self.gp_enable.on()
+		# Power on
 		self.power.on()
 		self.sleep(1)
 		self.power.off()
 		self.sleep(1)
-		self.gp_enable.on()
 
-	def __record(self):
+		# Record
 		self.rec.off()
 		self.sleep(5)
 		self.rec.on()
 
-	def activate(self):
-		super().activate()
-		#self.power.on()	#turn on Q3 so GPPower goes to  gnd
-		#self.sleep(1)
-		#self.power.off()	#turn off Q3 so GPPower floats
-		#self.sleep(1)
-
-		#This section starts recording and stops recording
-		#A falling edge starts/stop recording
-
-		self.rec.off()	#turn OFF Q1 so GPRec now floats
-		self.sleep(5)	#GoPro seems to need this set up time
-		self.rec.on()	#turn ON Q1 so GPRec goes to gnd falling edge starts record
-		#self.sleep(4)	#record time
-		#self.rec.off()
-		#self.rec.on() #Q1 on, GPRec go low and stops recording
-		#self.sleep(2)
-
 	def deactivate(self):
 		super().deactivate()
+		# stop record
 		self.rec.off()
-		self.sleep(2) # Waits to stop recording
-		self.rec.on() #Q1 on, GPRec go low and stops recording
 		self.sleep(2)
+		self.rec.on()
+		self.sleep(2)
+
+		# power off
 		self.power.on()
 		self.sleep(5)
 		self.power.off()
@@ -180,11 +172,7 @@ class Rf(Device):
 		self.ble.run_mainloop_with(self.__deactivate_thread)
 
 
-#---------------------------------------------------------------#
-#			Battery					#
-#---------------------------------------------------------------#
-class battery(Device):
-	pass
+
 #---------------------------------------------------------------#
 #			Ricoh					#
 #---------------------------------------------------------------#
