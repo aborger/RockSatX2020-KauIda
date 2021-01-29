@@ -8,8 +8,8 @@ NUM_EXTENSIONS = 5
 EXTENSION_PERIOD = 1
 
 # Initializing detects
-te1 = Detect('TE1', 16, 19) #16, 19
-door = Detect('Door Shut', 27, -1)
+te1 = Detect('TE1', 16, 19, 'r') #16, 19
+door = Detect('Door Shut', 27, -1, 'f')
 
 # Initializing devices
 gopro = Gopro('Gopro')
