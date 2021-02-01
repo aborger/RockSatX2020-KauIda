@@ -29,6 +29,7 @@ Ricoh = threading.Thread(target=ricoh.activate)
 Rf_deactivate = threading.Thread(target=rf.deactivate)
 Gopro_deactivate = threading.Thread(target=gopro.deactivate)
 
+
 # daemons
 Ricoh.daemon = True
 
@@ -61,6 +62,7 @@ while extension < NUM_EXTENSIONS:
 # Retract and take measurements
 print('Holding at extension...')
 sleep(2)
+
 print('Retracting boom...')
 while extension > 0:
 	RF = threading.Thread(target=rf.activate)
@@ -69,9 +71,8 @@ while extension > 0:
 	boom.deactivate(EXTENSION_PERIOD)
 	extension -= 1
 
-# Continues after door shuts
 door.wait_for_detect()
-door_lock.activate()
+door_lock.activate() # currently connected to door detect
 #-------------------------------------------------------#
 #			Deactivate			#
 #-------------------------------------------------------#
