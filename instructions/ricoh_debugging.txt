@@ -1,0 +1,20 @@
+Power Lamp
+The lamp indicates the camera status when the power is on.
+
+Lit in blue:
+There is a sufficient battery level.
+
+Flashing in blue:
+The battery level is low.
+
+Flashing in red:
+The power is turning off.
+
+Lit in green:
+Starting to charge.
+
+Flashing in green:
+Low Battery.
+
+Unlit:
+Charging is complete, the camera is sleeping, or the power is off.
