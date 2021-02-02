@@ -1,14 +1,20 @@
 from time import sleep 
-import RPi.GPIO as GPIO 
-from .diablo import *
+import RPi.GPIO as GPIO
+try:
+	from RPiMaster.diablo import *
+except:
+	pass
 import Adafruit_BluefruitLE
 from Adafruit_BluefruitLE.services import UART
 import uuid
 import dbus
+import os
 
 class Device:
 	def __init__(self, name):
 		self.name = name
+
+	def setup(self):
 		print('Setting up ' + self.name + '...')
 
 	def activate(self):
@@ -17,7 +23,7 @@ class Device:
 	def deactivate(self):
 		print('Deactivating ' + self.name + '...')
 
-	def shutoff(self):
+	def shutdown(self):
 		print('Shutting down ' + self.name + '...')
 
 #---------------------------------------------------------------#
@@ -26,8 +32,11 @@ class Device:
 class gopro(Device):
 	pass
 class Gopro(Device):
-	def __init__(self, name):
-		super().__init__(name)
+	def __init__(self):
+		super().__init__('GoPro')
+
+	def setup(self):
+		super().setup()
 		from gpiozero import LED
 		from time import sleep
 		self.sleep = sleep
@@ -78,6 +87,9 @@ class Gopro(Device):
 class rf:
 	pass
 class Rf(Device):
+	def __init__(self):
+		super().__init__('RF')
+
 	def __unwrap(self, val):
 		if isinstance(val, (dbus.Array, list, tuple)):
 			unwrapped_str = ''
@@ -145,6 +157,7 @@ class Rf(Device):
 		file.close()
 
 	def setup(self):
+		super().setup()
 		self.ble = Adafruit_BluefruitLE.get_provider()
 		self.ble.initialize()
 		self.ble.run_mainloop_with(self.__setup_thread)
@@ -176,6 +189,22 @@ class Rf(Device):
 #---------------------------------------------------------------#
 #			Ricoh					#
 #---------------------------------------------------------------#
+class Ricoh(Device):
+	def __init__(self):
+		super().__init__('Ricoh')
+
+	def activate(self):
+		super().activate()
+		os.system("ptpcam -R 0x101c,0,0,1")
+
+	def deactivate(self):
+		super().deactivate()
+		os.system("ptpcam -R 0x1018,0xFFFFFFFF")
+		sleep(5)
+		os.system("sudo adb pull /sdcard/DCIM/100RICOH/ /home/pi/Videos")
+		print("Transfer Complete")
+
+
 class ricoh(Device):
 	def deactivate(self):
 		super().deactivate()
@@ -185,8 +214,11 @@ class ricoh(Device):
 #---------------------------------------------------------------#
 class Boom(Device):
 	def __init__(self, extend_time):
-		print('Setting up boom...')
+		super().__init__('Boom')
 		self.extend_time = extend_time
+
+	def setup(self):
+		super().setup()
 		GPIO.setup(24, GPIO.IN) 
 		GPIO.setup(23, GPIO.IN)
 
@@ -219,28 +251,33 @@ class Boom(Device):
 	def deactivate(self, step):
 		self.DIABLO.SetMotor1(-1.0)
 		sleep(step)
+		self.DIABLO.SetMotor1(0.0)
 
 	def shutdown(self):
+		super().shutdown()
 		self.DIABLO.SetMotor1(0.0) # Turn off motor
 		print('Boom retracted...')
 
 
 
 class boom(Device):
-	def __init__(self, extend_time):
-		print('Setting up boom...')
+	def __init__(self):
+		super().__init__('boom')
+
+	def setup(self, extend_time):
+		super.setup()
 		self.extend_time = extend_time
 
 	def activate(self):
-		print('Extending boom...')
+		super.activate()
 		sleep(self.extend_time)
 		print('Holding boom at extension...')
 
 	def deactivate(self):
-		print('Retracting boom...')
+		super.deactivate()
 
 	def shutdown(self):
-		print('Boom retracted...')
+		super.shutdown()
 
 
 #---------------------------------------------------------------#
@@ -249,9 +286,49 @@ class boom(Device):
 class Lock(Device):
 	def __init__(self):
 		super().__init__('Lock')
+
+	def setup(self):
 		GPIO.setup(22, GPIO.OUT)
 		GPIO.output(22, 1)
 
 
 class lock(Device):
 	pass
+
+
+if __name__ == '__main__':
+	from diablo import *
+	import argparse
+	parser = argparse.ArgumentParser(description='Control Devices')
+	parser.add_argument("command", metavar="<command>", help="'gopro', 'rf', 'ricoh', 'boom', 'lock'")
+	parser.add_argument("--sig", help = "'set', 'on', 'off', '!'")
+
+	args = parser.parse_args()
+
+	controller = None
+
+	if args.command == 'gopro':
+		controller = Gopro()
+
+	elif args.command == 'rf':
+		controller = Rf()
+
+	elif args.command == 'ricoh':
+		controller = Ricoh()
+
+	elif args.command == 'boom':
+		controller = Boom()
+
+	elif args.command == 'lock':
+		controller = Lock()
+
+	controller.setup()
+
+	if args.sig == 'on':
+		controller.activate()
+
+	elif args.sig == 'off':
+		controller.deactivate()
+
+	elif args.sig == '!':
+		controller.shutdown()

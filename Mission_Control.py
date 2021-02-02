@@ -12,9 +12,9 @@ te1 = Detect('TE1', 16, 19, 'r') #16, 19
 door = Detect('Door Shut', 27, -1, 'f')
 
 # Initializing devices
-gopro = Gopro('Gopro')
-rf = Rf('rf')
-ricoh = ricoh('ricoh')
+gopro = Gopro()
+rf = Rf()
+ricoh = Ricoh()
 boom = Boom(5)
 door_lock = Lock()
 
@@ -22,20 +22,17 @@ door_lock = Lock()
 Rf_setup = threading.Thread(target=rf.setup)
 Gopro_activate = threading.Thread(target=gopro.activate)
 
-# Main threads
-Ricoh = threading.Thread(target=ricoh.activate)
-
 # deactivate threads
 Rf_deactivate = threading.Thread(target=rf.deactivate)
 Gopro_deactivate = threading.Thread(target=gopro.deactivate)
 
 
-# daemons
-Ricoh.daemon = True
-
 #-----------------------------------------------#
 #			Setup			#
 #-----------------------------------------------#
+gopro.setup()
+boom.setup()
+
 Rf_setup.start()
 Gopro_activate.start()
 
@@ -47,7 +44,7 @@ te1.wait_for_detect()
 #-----------------------------------------------#
 #			Main			#
 #-----------------------------------------------#
-Ricoh.start()
+ricoh.activate()
 
 # Extend boom and take rf measurements
 extension = 0
@@ -59,10 +56,11 @@ while extension < NUM_EXTENSIONS:
 	boom.activate(EXTENSION_PERIOD)
 	extension += 1
 
-# Retract and take measurements
-print('Holding at extension...')
+# Hold at extension
+print('Holding boom at extension...')
 sleep(2)
 
+# Retract and take measurements
 print('Retracting boom...')
 while extension > 0:
 	RF = threading.Thread(target=rf.activate)
@@ -71,6 +69,7 @@ while extension > 0:
 	boom.deactivate(EXTENSION_PERIOD)
 	extension -= 1
 
+door_lock.setup()
 door.wait_for_detect()
 door_lock.activate() # currently connected to door detect
 #-------------------------------------------------------#
