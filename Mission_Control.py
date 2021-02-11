@@ -3,6 +3,10 @@ import threading
 from RPiMaster.detect import *
 from RPiMaster.device import *
 from time import sleep
+import os
+
+os.system("./bluetoothON.sh")
+
 
 NUM_EXTENSIONS = 5
 EXTENSION_PERIOD = 1
