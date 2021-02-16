@@ -102,18 +102,16 @@ void Telem::shutdown() {
     digitalWrite(sensorPins[pin], LOW);
   }
 }
-int main (void) {
-  int sensor_pins[1] = {15};
-  int prs = 6;
-  Telem telem(sensor_pins, prs);
 
-  unsigned char *val;
-  val = new unsigned char[1];
-  for (int i = 0; i < 255; i++) {
-    //unsigned char i = 0xC8;
-    //cout << "Val = " << i << endl;
-    val[0] = i;
-    telem.write(val);
+// C wrapper to allow calling from python
+extern "C" {
+  Telem* Telem_new(int[] sensorPin, int prsPin) {return new Telem(sensorPin, prsPin);}
+  void Telem_write(Telem* telem, unsigned char* vals) {return telem->write(vals);}
+  void Telem_shutdown(Telem* telem) {return telem->shutdown();}
+  void Telem_delete(Telem* telem) {
+    if (telem) {
+      delete telem;
+      telem = nullptr;
+    }
   }
-  return 0;
 }
