@@ -33,18 +33,6 @@ Gopro_activate = threading.Thread(target=gopro.activate)
 Rf_deactivate = threading.Thread(target=rf.deactivate)
 Gopro_deactivate = threading.Thread(target=gopro.deactivate)
 
-# setup door_lock
-def Stop(channel):
-	door_lock.activate()
-	boom.shutdown()
-	ricoh.deactivate()
-	gopro.deactivate()
-	rf.deactivate()
-	quit()
-
-GPIO.setup(27, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
-GPIO.add_event_detect(27, GPIO.RISING, callback=Stop)
-
 
 #-----------------------------------------------#
 #			Setup			#
@@ -70,9 +58,9 @@ ricoh.activate()
 extension = 0
 print('Extending boom...')
 while extension < NUM_EXTENSIONS:
-	RF = threading.Thread(target=rf.activate)
-	RF.daemon = True
-	RF.start()
+	RF_activate = threading.Thread(target=rf.activate)
+	RF_activate.daemon = True
+	RF_activate.start()
 	boom.activate(EXTENSION_PERIOD)
 	extension += 1
 
@@ -92,4 +80,11 @@ while extension > 0:
 	extension -= 1
 
 
-
+door_lock.setup()
+door.wait_for_detect()
+door_lock.activate()
+#------#
+boom.shutdown()
+ricoh.deactivate()
+Gopro_deactivate.start()
+Rf_deactivate.start()

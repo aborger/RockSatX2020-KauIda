@@ -15,9 +15,9 @@ Parallel read strobe line procedure:
 #include <wiringPi.h>
 #include <iostream>
 
-#define DELAY_A		50 // Start of cyle time
-#define DELAY_B		75 // Read Data time
-#define DELAY_C		200 // Refresh time
+#define DELAY_A		10 // Start of cyle time
+#define DELAY_B		60 // Read Data time
+#define DELAY_C		100 // Refresh time
 #define NUM_BITS	8
 
 using namespace std;
@@ -25,13 +25,13 @@ using namespace std;
 class Telem {
 
   public:
-    Telem(int[], int);
-    void write(unsigned char*); // Called by python script, paramater is an array containing hex data for each sensor from one reading
+    Telem(int);
+    void write(int, int, int, int, int); // Called by python script, paramater is an array containing hex data for each sensor from one reading
     void shutdown();
   private:
-    int* sensorPins; // Pin number corellated to each sensor
-    int prsPin = 10; // Pin for Parallel Read Strobe (tells nasa when a new bit is being sent)
-    int NUM_SENSORS; // Number of sensors
+    int sensorPins[5] = {15, 16, 1, 4, 5}; // Pin number corellated to each sensor
+    int prsPin = 6; // Pin for Parallel Read Strobe (tells nasa when a new bit is being sent)
+    int NUM_SENSORS = 5; // Number of sensors
     unsigned char* vals; // Contains byte for each sensor that will be sent
     unsigned char mask; // A mask for which bit is being sent
     void set(); // writes a bit to nasa for each sensor
@@ -39,10 +39,7 @@ class Telem {
 };
 
 // Constructor
-Telem::Telem(int sensorPins[], int prsPin) {
-  this->sensorPins = sensorPins;
-  this->prsPin = prsPin;
-  this->NUM_SENSORS = sizeof(sensorPins)/sizeof(sensorPins[0]);
+Telem::Telem(int t) {
   this->vals = new unsigned char[NUM_SENSORS];
   this->mask = 0x0001;
 
@@ -58,9 +55,12 @@ Telem::Telem(int sensorPins[], int prsPin) {
 
 void Telem::set() {
   // sets bit for each sensor
+  wiringPiSetup();
   for(int sen = 0; sen < NUM_SENSORS; sen++) {
+
     // if bit currently being sent is high
     //cout << (int)vals[sen] << " " << (int)mask << " " << (vals[sen] & mask) << endl; //debug
+    pinMode(sensorPins[sen], OUTPUT);
     if(vals[sen] & mask) {
       digitalWrite(sensorPins[sen], HIGH); // sets that sensor pin high
     } else {
@@ -71,22 +71,27 @@ void Telem::set() {
 }
 
 
-void Telem::write(unsigned char* new_vals) {
-  vals = new_vals;
+void Telem::write(int rssi, int temp, int hum, int pres, int alt) {
+  vals[0] = (unsigned char) rssi;
+  vals[1] = (unsigned char) temp;
+  vals[2] = (unsigned char) hum;
+  vals[3] = (unsigned char) pres;
+  vals[4] = (unsigned char) alt;
+
   mask = 0x0001;
   // set lines with first bit
   set();
   delay(DELAY_C);
 
-
   for(int bit = 0; bit < NUM_BITS; bit++) {
     write_bit();
-
   }
 }
 
 void Telem::write_bit() {
   // tell NASA a bit is coming
+  wiringPiSetup();
+  pinMode(prsPin, OUTPUT);
   digitalWrite(prsPin, HIGH);
   delay(DELAY_A);
   digitalWrite(prsPin, LOW);
@@ -105,8 +110,8 @@ void Telem::shutdown() {
 
 // C wrapper to allow calling from python
 extern "C" {
-  Telem* Telem_new(int[] sensorPin, int prsPin) {return new Telem(sensorPin, prsPin);}
-  void Telem_write(Telem* telem, unsigned char* vals) {return telem->write(vals);}
+  Telem* Telem_new(int t) {return new Telem(t);}
+  void Telem_write(Telem* telem, int rssi, int temp, int hum, int pres, int alt) {return telem->write(rssi, temp, hum, pres, alt);}
   void Telem_shutdown(Telem* telem) {return telem->shutdown();}
   void Telem_delete(Telem* telem) {
     if (telem) {
@@ -114,4 +119,12 @@ extern "C" {
       telem = nullptr;
     }
   }
+}
+
+
+int main (void) {
+  Telem telem(1);
+
+  telem.write(20, 1, 1, 1, 1);
+  return 0;
 }

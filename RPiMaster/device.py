@@ -1,14 +1,12 @@
-from time import sleep 
+from time import sleep
 import RPi.GPIO as GPIO
-try:
-	from RPiMaster.diablo import *
-except:
-	pass
+from RPiMaster.diablo import *
 import Adafruit_BluefruitLE
 from Adafruit_BluefruitLE.services import UART
 import uuid
 import dbus
 import os
+from RPiMaster.telemetry import Telem
 
 class Device:
 	def __init__(self, name):
@@ -59,7 +57,7 @@ class Gopro(Device):
 		self.power.on()
 		self.sleep(1)
 		self.power.off()
-		self.sleep(1)
+		self.sleep(3)
 
 		# Record
 		self.rec.off()
@@ -89,18 +87,25 @@ class rf:
 class Rf(Device):
 	def __init__(self):
 		super().__init__('RF')
+		self.SENSOR_PINS = [15, 16, 1, 4, 5]
+		self.PRS_PIN = 6
+		self.telem = None
+		self.sensor_values = [0, 0, 0, 0, 0]
 
-	def __unwrap(self, val):
+	def __unwrap(self, val, sensorID):
 		if isinstance(val, (dbus.Array, list, tuple)):
 			unwrapped_str = ''
 			for x in val:
-				unwrapped_str = unwrapped_str + self.__unwrap(x)
+				unwrapped_str = unwrapped_str + self.__unwrap(x, sensorID)
 			return unwrapped_str
 		if isinstance(val, dbus.Byte):
+			if sensorID != -1:
+				self.sensor_values[sensorID] = int(val)
 			return str(val)
 
 	def __setup_thread(self):
 		# Service and Character UUID's
+		self.telem = Telem()
 		UART_SERVICE_UUID = uuid.UUID('6E400001-B5A3-F393-E0A9-E50E24DCCA9E')
 		TX_CHAR_UUID      = uuid.UUID('6E400002-B5A3-F393-E0A9-E50E24DCCA9E')
 		RX_CHAR_UUID      = uuid.UUID('6E400003-B5A3-F393-E0A9-E50E24DCCA9E')
@@ -154,7 +159,7 @@ class Rf(Device):
 		file = open("rfOutput.csv", "w")
 		file.write('RSSI (dB),TEMP (*C),PRESSURE (hPa),HUMIDITY (%),GAS (KOhms),ALT (m)\n')
 		file.close()
-		print('rf done')
+		print('rf setup')
 
 	def setup(self):
 		super().setup()
@@ -163,21 +168,26 @@ class Rf(Device):
 		self.ble.run_mainloop_with(self.__setup_thread)
 
 	def __activate_thread(self):
-		rssi     = str(self.__unwrap(self.chars["rssi"].read_value()))
-		temp     = str(self.__unwrap(self.chars["temp"].read_value()))
-		pressure = str(self.__unwrap(self.chars["pressure"].read_value()))
-		humidity = str(self.__unwrap(self.chars["humidity"].read_value()))
-		gas      = str(self.__unwrap(self.chars["gas"].read_value()))
-		alt	 = str(self.__unwrap(self.chars["alt"].read_value()))
-		file = open("rfOutput.csv", "a") 
+		# reset sensor values
+		self.sensor_values = [0, 0, 0, 0, 0]
+
+		rssi     = str(self.__unwrap(self.chars["rssi"].read_value(), 0))
+		temp     = str(self.__unwrap(self.chars["temp"].read_value(), 1))
+		pressure = str(self.__unwrap(self.chars["pressure"].read_value(), 2))
+		humidity = str(self.__unwrap(self.chars["humidity"].read_value(), 3))
+		gas      = str(self.__unwrap(self.chars["gas"].read_value(), -1))
+		alt	 = str(self.__unwrap(self.chars["alt"].read_value(), 4))
+		file = open("rfOutput.csv", "a")
 		print(' ' + rssi + '    ' + temp + '   ' + pressure + '    ' + humidity + '    ' + gas + '    ' + alt)
 		file.write(rssi + ',' + temp + ',' + pressure + ',' + humidity + ',' + gas + ',' + alt + '\n')
 		file.close()
+		os.system("./rpiScripts/telem/telem")
+		#self.telem.write(self.sensor_values)
 
 	def activate(self):
 		self.ble.run_mainloop_with(self.__activate_thread)
 
-	def deactivate_thread(self):
+	def __deactivate_thread(self):
 		self.device.disconnect()
 
 	def deactivate(self):
@@ -203,7 +213,7 @@ class Ricoh(Device):
 		sleep(5)
 		os.system("sudo adb pull /sdcard/DCIM/100RICOH/ /home/pi/Videos")
 		print("Transfer Complete")
-
+		os.system("ptpcam -D")
 
 class ricoh(Device):
 	def deactivate(self):
