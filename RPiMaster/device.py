@@ -153,8 +153,8 @@ class Rf(Device):
 		}
 		file = open("rfOutput.csv", "w")
 		file.write('RSSI (dB),TEMP (*C),PRESSURE (hPa),HUMIDITY (%),GAS (KOhms),ALT (m)\n')
-		#print('RSSI:  TEMP:  PRESSURE:  HUMIDITY:  GAS:  ALT: ')
 		file.close()
+		print('rf done')
 
 	def setup(self):
 		super().setup()
@@ -177,7 +177,7 @@ class Rf(Device):
 	def activate(self):
 		self.ble.run_mainloop_with(self.__activate_thread)
 
-	def __deactivate_thread(self):
+	def deactivate_thread(self):
 		self.device.disconnect()
 
 	def deactivate(self):

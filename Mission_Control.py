@@ -4,6 +4,9 @@ from RPiMaster.detect import *
 from RPiMaster.device import *
 from time import sleep
 import os
+import RPi.GPIO as GPIO
+
+GPIO.setmode(GPIO.BCM)
 
 os.system("./bluetoothON.sh")
 
@@ -30,6 +33,18 @@ Gopro_activate = threading.Thread(target=gopro.activate)
 Rf_deactivate = threading.Thread(target=rf.deactivate)
 Gopro_deactivate = threading.Thread(target=gopro.deactivate)
 
+# setup door_lock
+def Stop(channel):
+	door_lock.activate()
+	boom.shutdown()
+	ricoh.deactivate()
+	gopro.deactivate()
+	rf.deactivate()
+	quit()
+
+GPIO.setup(27, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+GPIO.add_event_detect(27, GPIO.RISING, callback=Stop)
+
 
 #-----------------------------------------------#
 #			Setup			#
@@ -43,6 +58,7 @@ Gopro_activate.start()
 Rf_setup.join()
 Gopro_activate.join()
 
+door_lock.setup() # set pin for door detect high
 # Continues after TE1 is detected
 te1.wait_for_detect()
 #-----------------------------------------------#
@@ -64,6 +80,8 @@ while extension < NUM_EXTENSIONS:
 print('Holding boom at extension...')
 sleep(2)
 
+
+
 # Retract and take measurements
 print('Retracting boom...')
 while extension > 0:
@@ -73,13 +91,5 @@ while extension > 0:
 	boom.deactivate(EXTENSION_PERIOD)
 	extension -= 1
 
-door_lock.setup()
-door.wait_for_detect()
-door_lock.activate() # currently connected to door detect
-#-------------------------------------------------------#
-#			Deactivate			#
-#-------------------------------------------------------#
-boom.shutdown()
-ricoh.deactivate()
-Gopro_deactivate.start()
-Rf_deactivate.start()
+
+
