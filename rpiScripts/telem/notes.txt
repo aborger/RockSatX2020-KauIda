@@ -4,4 +4,4 @@ run: ./telem
 
 make lib.so file:
 g++ -c -fPIC telemetry.cpp -o telemetry.o
-g++ -shared -W1,-soname,telemetry.so -o telemetry.so telemetry.o
+g++ -shared -Wl,-soname,telemetry.so -o telemetry.so telemetry.o
