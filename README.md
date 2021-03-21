@@ -11,9 +11,9 @@ The connections are as follows:
 |:----------:|:---------:|----|:----------:|:------:|
 | Vin        | 5V        |    | Vin        | 5V     |
 | GND        | GND       |    | GND        | GND    |
-| CTS        | GND       |    | SCK        | A5     |
-| TX0        | RX0       |    | SDI        | A4     |
-| RX1        | TX1       |
+| 9          | RX0       |    | SCK        | A5     |
+| 10         | TX1       |    | SDI        | A4     |
+| 11         | CTS       |
 
 The Pro Tinker is powered by a 5v button cell battery.
 
