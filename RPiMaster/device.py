@@ -6,7 +6,7 @@ from Adafruit_BluefruitLE.services import UART
 import uuid
 import dbus
 import os
-from RPiMaster.telemetry import Telem
+#from RPiMaster.telemetry import Telem
 
 class Device:
 	def __init__(self, name):
@@ -57,7 +57,7 @@ class Gopro(Device):
 		self.power.on()
 		self.sleep(1)
 		self.power.off()
-		self.sleep(3)
+		self.sleep(1)
 
 		# Record
 		self.rec.off()
@@ -105,7 +105,7 @@ class Rf(Device):
 
 	def __setup_thread(self):
 		# Service and Character UUID's
-		self.telem = Telem()
+		#self.telem = Telem()
 		UART_SERVICE_UUID = uuid.UUID('6E400001-B5A3-F393-E0A9-E50E24DCCA9E')
 		TX_CHAR_UUID      = uuid.UUID('6E400002-B5A3-F393-E0A9-E50E24DCCA9E')
 		RX_CHAR_UUID      = uuid.UUID('6E400003-B5A3-F393-E0A9-E50E24DCCA9E')
@@ -124,6 +124,7 @@ class Rf(Device):
 		adapter = self.ble.get_default_adapter()
 		adapter.power_on()
 
+
 		# Disconnect currently connected devices
 		self.ble.disconnect_devices()
 
@@ -137,8 +138,8 @@ class Rf(Device):
 		finally:
 			adapter.stop_scan()
 
-		self.device.connect()
 
+		self.device.connect()
 		# Discover Services and Characteristics
 		print('Discovering...')
 		self.device.discover([SENSE_SERVICE_UUID], [RSSI_CHAR_UUID,
@@ -289,19 +290,9 @@ class boom(Device):
 	def shutdown(self):
 		super.shutdown()
 
-
 #---------------------------------------------------------------#
 #				Lock				#
 #---------------------------------------------------------------#
-class Lock(Device):
-	def __init__(self):
-		super().__init__('Lock')
-
-	def setup(self):
-		GPIO.setup(22, GPIO.OUT)
-		GPIO.output(22, 1)
-
-
 class lock(Device):
 	pass
 

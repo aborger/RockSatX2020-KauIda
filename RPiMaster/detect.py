@@ -1,5 +1,6 @@
 import RPi.GPIO as GPIO
 from time import sleep
+import os
 
 GPIO.setmode(GPIO.BCM)
 
@@ -36,3 +37,17 @@ class detect:
 		print('Waiting to detect ' + self.name)
 		sleep(self.wait_time)
 		print(self.name + ' has been detected')
+
+class Limit:
+	def __init__(self, power, detect):
+		self.detect = detect
+		GPIO.setup(power, GPIO.OUT)
+		GPIO.output(power, 1)
+		GPIO.setup(self.detect, GPIO.IN, pull_up_down = GPIO.PUD_DOWN)
+
+	def isDoorShut(self):
+		if GPIO.input(self.detect) == 1:
+			return False
+		else:
+			print("Door shut detected!")
+			return True
