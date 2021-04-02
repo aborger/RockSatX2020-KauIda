@@ -218,6 +218,35 @@ class Boom(Device):
 		self.extend_time = extend_time
 
 	def setup(self):
+		self.PWM_PIN = 12
+		self.DIR_PIN = 26
+
+		GPIO.setup(self.PWM_PIN, GPIO.OUT)
+		GPIO.setup(self.DIR_PIN, GPIO.OUT)
+		sleep(1)
+		self.motor = GPIO.PWM(self.PWM_PIN, 100)
+
+	def activate(self, step):
+		GPIO.output(self.DIR_PIN, GPIO.HIGH)
+		self.motor.start(100)
+		#sleep(step)
+		#self.motor.start(0)
+
+	def deactivate(self, step):
+		GPIO.output(self.DIR_PIN, GPIO.LOW)
+		self.motor.start(100)
+		#sleep(step)
+		#self.motor.start(0)
+
+	def shutdown(self):
+		self.motor.start(0)
+
+class Boom_diablo(Device):
+	def __init__(self, extend_time):
+		super().__init__('Boom')
+		self.extend_time = extend_time
+
+	def setup(self):
 		super().setup()
 		GPIO.setup(24, GPIO.IN) 
 		GPIO.setup(23, GPIO.IN)
