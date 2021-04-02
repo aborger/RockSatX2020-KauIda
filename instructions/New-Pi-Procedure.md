@@ -26,4 +26,5 @@ sudo apt-get install -y android-tools-adb
 $ sudo apt install bluetooth pi-bluetooth bluez
 $ sudo reboot
 ```
-5. Fix Bluetooth code: https://github.com/donatieng/Adafruit_Python_BluefruitLE/commit/af46b05cbcfd82110c8bbd08ed3d483de128fed1
+5. Fix Bluetooth code: ```$ nano ./.local/lib/python3.7/site-packages/Adafruit_BluefruitLE/bluez_dbus/gatt.py```
+https://github.com/donatieng/Adafruit_Python_BluefruitLE/commit/af46b05cbcfd82110c8bbd08ed3d483de128fed1
