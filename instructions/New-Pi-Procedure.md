@@ -21,5 +21,9 @@ sudo ldconfig
 
 sudo apt-get install -y android-tools-adb
 ```
-4. Install Bluetooth code: ``` pip3 install Adafruit-BluefruitLE```
+4. Install Bluetooth code: 
+``` $ pip3 install Adafruit-BluefruitLE
+$ sudo apt install bluetooth pi-bluetooth bluez
+$ sudo reboot
+```
 5. Fix Bluetooth code: https://github.com/donatieng/Adafruit_Python_BluefruitLE/commit/af46b05cbcfd82110c8bbd08ed3d483de128fed1
