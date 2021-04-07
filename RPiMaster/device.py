@@ -224,9 +224,10 @@ class ricoh(Device):
 #				BOOM				#
 #---------------------------------------------------------------#
 class Boom(Device):
-	def __init__(self, extend_time):
+	def __init__(self, extend_time, power):
 		super().__init__('Boom')
 		self.extend_time = extend_time
+		self.power = power
 
 	def setup(self):
 		self.PWM_PIN = 12
@@ -239,15 +240,15 @@ class Boom(Device):
 
 	def activate(self, step):
 		GPIO.output(self.DIR_PIN, GPIO.HIGH)
-		self.motor.start(100)
-		#sleep(step)
-		#self.motor.start(0)
+		self.motor.start(self.power)
+		sleep(step)
+		self.motor.start(0)
 
 	def deactivate(self, step):
 		GPIO.output(self.DIR_PIN, GPIO.LOW)
-		self.motor.start(100)
-		#sleep(step)
-		#self.motor.start(0)
+		self.motor.start(self.power)
+		sleep(step)
+		self.motor.start(0)
 
 	def shutdown(self):
 		self.motor.start(0)

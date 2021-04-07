@@ -45,7 +45,7 @@ class Limit:
 		GPIO.output(power, 1)
 		GPIO.setup(self.detect, GPIO.IN, pull_up_down = GPIO.PUD_DOWN)
 
-	def isDoorShut(self):
+	def doorShut(self):
 		if GPIO.input(self.detect) == 1:
 			return False
 		else:

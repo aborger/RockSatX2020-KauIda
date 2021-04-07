@@ -22,7 +22,7 @@ limit = Limit(22, 27)
 gopro = Gopro()
 rf = Rf()
 ricoh = Ricoh()
-boom = Boom(5)
+boom = Boom(5, 100)
 
 # Setup threads
 Rf_setup = threading.Thread(target=rf.setup)
@@ -65,13 +65,13 @@ while extension < NUM_EXTENSIONS:
 
 # Hold at extension
 print('Holding boom at extension...')
-sleep(2)
+sleep(3)
 
 
 
 # Retract and take measurements
 print('Retracting boom...')
-while extension > -1 and not limit.isDoorShut():
+while not limit.doorShut():
 	RF = threading.Thread(target=rf.activate)
 	RF.daemon = True
 	RF.start()
