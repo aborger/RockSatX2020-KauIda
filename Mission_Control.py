@@ -22,7 +22,9 @@ limit = Limit(22, 27)
 gopro = Gopro()
 rf = Rf()
 ricoh = Ricoh()
-boom = Boom(5, 100)
+boom = Boom(5, 75)
+lock = Lock(14)
+readyLight = ReadyLight(11)
 
 # Setup threads
 Rf_setup = threading.Thread(target=rf.setup)
@@ -46,7 +48,9 @@ Rf_setup.join()
 Gopro_activate.join()
 
 # Continues after TE1 is detected
+readyLight.activate()
 te1.wait_for_detect()
+readyLight.deactivate()
 #-----------------------------------------------#
 #			Main			#
 #-----------------------------------------------#
@@ -68,7 +72,7 @@ print('Holding boom at extension...')
 sleep(3)
 
 
-
+readyLight.activate()
 # Retract and take measurements
 print('Retracting boom...')
 while not limit.doorShut():
@@ -79,10 +83,11 @@ while not limit.doorShut():
 	extension -= 1
 
 
-
-
 #------#
+readyLight.deactivate()
+lock.activate()
 boom.shutdown()
 ricoh.deactivate()
 Gopro_deactivate.start()
 Rf_deactivate.start()
+lock.deactivate()

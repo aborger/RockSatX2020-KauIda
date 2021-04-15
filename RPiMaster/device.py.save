@@ -6,7 +6,7 @@ from Adafruit_BluefruitLE.services import UART
 import uuid
 import dbus
 import os
-from RPiMaster.telemetry import write as write_telem
+#from RPiMaster.telemetry import Telem
 
 class Device:
 	def __init__(self, name):
@@ -87,6 +87,9 @@ class rf:
 class Rf(Device):
 	def __init__(self):
 		super().__init__('RF')
+		self.SENSOR_PINS = [15, 16, 1, 4, 5]
+		self.PRS_PIN = 6
+		self.telem = None
 		self.sensor_values = [0, 0, 0, 0, 0]
 
 	def __unwrap(self, val, sensorID):
@@ -102,6 +105,7 @@ class Rf(Device):
 
 	def __setup_thread(self):
 		# Service and Character UUID's
+		#self.telem = Telem()
 		UART_SERVICE_UUID = uuid.UUID('6E400001-B5A3-F393-E0A9-E50E24DCCA9E')
 		TX_CHAR_UUID      = uuid.UUID('6E400002-B5A3-F393-E0A9-E50E24DCCA9E')
 		RX_CHAR_UUID      = uuid.UUID('6E400003-B5A3-F393-E0A9-E50E24DCCA9E')
@@ -174,13 +178,12 @@ class Rf(Device):
 		humidity = str(self.__unwrap(self.chars["humidity"].read_value(), 3))
 		gas      = str(self.__unwrap(self.chars["gas"].read_value(), -1))
 		alt	 = str(self.__unwrap(self.chars["alt"].read_value(), 4))
-
-
 		file = open("rfOutput.csv", "a")
 		print(' ' + rssi + '    ' + temp + '   ' + pressure + '    ' + humidity + '    ' + gas + '    ' + alt)
 		file.write(rssi + ',' + temp + ',' + pressure + ',' + humidity + ',' + gas + ',' + alt + '\n')
 		file.close()
-		write_telem(self.sensor_values)
+		os.system("./rpiScripts/telem/telem")
+		#self.telem.write(self.sensor_values)
 
 	def activate(self):
 		self.ble.run_mainloop_with(self.__activate_thread)
@@ -340,20 +343,7 @@ class Lock(Device):
 		super().deactivate()
 		self.servo.ChangeDutyCycle(2.5)
 
-#---------------------------------------------------------------#
-#			Led					#
-#---------------------------------------------------------------#
-class ReadyLight(Device):
-	def __init__(self, pin):
-		super().__init__('Ready Light')
-		GPIO.setup(pin, GPIO.OUT)
-		self.pin = pin
-
-	def activate(self):
-		GPIO.output(self.pin, GPIO.HIGH)
-
-	def deactivate(self):
-		GPIO.output(self.pin, GPIO.LOW)
+#---------------------------------------------------------------#                                                                                                                                    #                               Lock                            #                                                                                                                                    #---------------------------------------------------------------#
 
 
 if __name__ == '__main__':

@@ -1,9 +1,7 @@
 /*
 This script sends rssi and other possible sensor data through telemetry back to NASA
 Must complete Interface Control Documents (ICDs)
-
 RF experiminent data is sent through wallop's 16 parallel lines
-
 Parallel read strobe line procedure:
 1 uS: HIGH (Start of cycle)
 5.333 uS: LOW (read data)
@@ -15,8 +13,8 @@ Parallel read strobe line procedure:
 #include <wiringPi.h>
 #include <iostream>
 
-#define DELAY_A		10 // Start of cyle time
-#define DELAY_B		60 // Read Data time
+#define DELAY_A		1 // Start of cyle time
+#define DELAY_B		5 // Read Data time
 #define DELAY_C		100 // Refresh time
 #define NUM_BITS	8
 
@@ -28,11 +26,13 @@ class Telem {
     Telem(int);
     void write(int, int, int, int, int); // Called by python script, paramater is an array containing hex data for each sensor from one reading
     void shutdown();
+    int test_pub = 0;
   private:
-    int sensorPins[5] = {15, 16, 1, 4, 5}; // Pin number corellated to each sensor
+    int sensorPins[5] = {16, 1, 4, 5, 7}; // Pin number corellated to each sensor
     int prsPin = 6; // Pin for Parallel Read Strobe (tells nasa when a new bit is being sent)
     int NUM_SENSORS = 5; // Number of sensors
-    unsigned char* vals; // Contains byte for each sensor that will be sent
+    int test_priv = 0;
+    unsigned char vals[5] = {0, 0, 0, 0, 0}; // Contains byte for each sensor that will be sent
     unsigned char mask; // A mask for which bit is being sent
     void set(); // writes a bit to nasa for each sensor
     void write_bit(void); // runs procedure to send a bit of data
@@ -40,7 +40,6 @@ class Telem {
 
 // Constructor
 Telem::Telem(int t) {
-  this->vals = new unsigned char[NUM_SENSORS];
   this->mask = 0x0001;
 
   wiringPiSetup(); // sets up wiringPi library
@@ -50,6 +49,7 @@ Telem::Telem(int t) {
     pinMode(sensorPins[pin], OUTPUT);
     digitalWrite(sensorPins[pin], LOW);
   }
+  cout << "Telem constructed" << endl;
 }
 
 
@@ -72,6 +72,16 @@ void Telem::set() {
 
 
 void Telem::write(int rssi, int temp, int hum, int pres, int alt) {
+  cout << "testing public" << endl;
+
+  test_pub = 1;
+  cout << test_pub;
+  cout << "testing private" << endl;
+
+  test_priv = 2;
+  cout << test_priv;
+
+  cout << "setting vals" << endl;
   vals[0] = (unsigned char) rssi;
   vals[1] = (unsigned char) temp;
   vals[2] = (unsigned char) hum;
@@ -80,12 +90,15 @@ void Telem::write(int rssi, int temp, int hum, int pres, int alt) {
 
   mask = 0x0001;
   // set lines with first bit
+  cout << "set" << endl;
   set();
   delay(DELAY_C);
 
   for(int bit = 0; bit < NUM_BITS; bit++) {
+    cout << "write bit" << endl;
     write_bit();
   }
+  cout << "write complete" << endl;
 }
 
 void Telem::write_bit() {
