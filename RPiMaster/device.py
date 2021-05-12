@@ -6,6 +6,7 @@ from Adafruit_BluefruitLE.services import UART
 import uuid
 import dbus
 import os
+from theta import Theta
 if __name__ != '__main__':
 	from RPiMaster.telemetry import write as write_telem
 
@@ -226,7 +227,49 @@ class Rf(Device):
 #---------------------------------------------------------------#
 #			Ricoh					#
 #---------------------------------------------------------------#
-class Ricoh(Device):
+class Ricoh(device):
+	def __init__(self):
+		super().__init__('Rioch')
+
+		self.url = 'http://192.168.1.1/osc/commands/execute'
+
+		self.commands = {"start": {"name": "camera.startCapture"},
+		"stop": {"name": "camera.stopCapture"},
+		"list": {"name": "camera.listFiles", "parameters": {"fileType": "all","entryCount": 50,"maxThumbSize": 0}},
+		"delete": {"name": "camera.delete", "parameters": {"fileUrls": ["all"]}},
+		"storage": {"name": "camera.getOptions", "parameters": {"optionNames": ["remainingvideoSeconds"]}},
+		"frequency": {"name": "camera.getOptions", "parameters": {"optionNames": ["_wlanFrequency"]}}
+		}
+
+	def __request(self, command):
+		response = requests.post(self.url, self.commands[command])
+		return response
+
+	def __download(self):
+		resonse = self.request('list')
+		fileUrl = response.json()['results']['entries'][0]['fileUrl']
+		os.system("wget " + fileUrl)
+
+	def rssi(self):
+		proc = subprocess.Popen(["iwconfig", "wlan0"], stdout=subprocess.PIPE, shell=False)
+		(out, err) = proc.communicate()
+		out = out.decode('utf-8')
+		out = out.split("\n",8)[5]
+		out = out.split("=", 3)[2]
+		out = out[:3]
+		return int(out)
+
+	def activate(self):
+		super().activate()
+		self.__request('start')
+
+	def deactivate(self):
+		super().deactivate()
+		self.__request('stop')
+		self.__download()
+		self.__request('delete')
+
+class ptpRicoh(Device):
 	def __init__(self):
 		super().__init__('Ricoh')
 
