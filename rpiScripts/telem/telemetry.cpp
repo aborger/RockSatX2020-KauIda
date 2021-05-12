@@ -28,8 +28,8 @@ class Telem {
     void shutdown();
     int test_pub = 0;
   private:
-    int sensorPins[5] = {16, 1, 4, 5, 7}; // Pin number corellated to each sensor
-    int prsPin = 6; // Pin for Parallel Read Strobe (tells nasa when a new bit is being sent)
+    int sensorPins[5] = {3, 4, 15, 17,18}; // Pin number corellated to each sensor
+    int prsPin = 2; // Pin for Parallel Read Strobe (tells nasa when a new bit is being sent)
     int NUM_SENSORS = 5; // Number of sensors
     int test_priv = 0;
     unsigned char vals[5] = {0, 0, 0, 0, 0}; // Contains byte for each sensor that will be sent

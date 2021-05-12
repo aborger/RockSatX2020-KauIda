@@ -1,12 +1,14 @@
 from time import sleep
 import RPi.GPIO as GPIO
-from RPiMaster.diablo import *
+#from RPiMaster.diablo import *
 import Adafruit_BluefruitLE
 from Adafruit_BluefruitLE.services import UART
 import uuid
 import dbus
 import os
-from RPiMaster.telemetry import write as write_telem
+if __name__ != '__main__':
+	from RPiMaster.telemetry import write as write_telem
+
 
 class Device:
 	def __init__(self, name):
@@ -33,8 +35,6 @@ class Gopro(Device):
 	def __init__(self):
 		super().__init__('GoPro')
 
-	def setup(self):
-		super().setup()
 		from gpiozero import LED
 		from time import sleep
 		self.sleep = sleep
@@ -89,6 +89,7 @@ class Rf(Device):
 		super().__init__('RF')
 		self.sensor_values = [0, 0, 0, 0, 0]
 
+	'''
 	def __unwrap(self, val, sensorID):
 		if isinstance(val, (dbus.Array, list, tuple)):
 			unwrapped_str = ''
@@ -98,7 +99,35 @@ class Rf(Device):
 		if isinstance(val, dbus.Byte):
 			if sensorID != -1:
 				self.sensor_values[sensorID] = int(val)
-			return str(val)
+			try:
+				val = str(val)
+			except Exception as e:
+				print(e)
+				#print(val)
+			return val
+	'''
+
+
+	def __unwrap(self, val, sensorID):
+		if isinstance(val, (dbus.Array, list, tuple)):
+			unwrapped_str = ''
+			for x in val:
+				unwrapped_str = unwrapped_str + self.__unwrap(x, sensorID)
+			#print('unwrapped_str: ')
+			#print(unwrapped_str)
+			unwrapped_str = unwrapped_str.replace('=', '')
+			return unwrapped_str
+		if isinstance(val, dbus.Byte):
+			if sensorID != -1:
+				#print('val: ')
+				#print(int(val))
+				try:
+					return str(val)
+				except:
+					#print('couldnt convert to string')
+					#print(type(val))
+					pass
+			return ''
 
 	def __setup_thread(self):
 		# Service and Character UUID's
@@ -201,6 +230,20 @@ class Ricoh(Device):
 	def __init__(self):
 		super().__init__('Ricoh')
 
+		import subprocess
+
+		# Get Battery
+		proc = subprocess.Popen(["ptpcam", "--show-property=0x5001"], stdout=subprocess.PIPE)
+		(out, err) = proc.communicate()
+
+		# Parse result
+		try:
+			battery = int(out[50:len(out) - 1])
+			print('Ricoh Battery Level: ' + str(battery))
+		except Exception as e:
+			print(e)
+
+
 	def activate(self):
 		super().activate()
 		os.system("ptpcam -R 0x101c,0,0,1")
@@ -226,7 +269,6 @@ class Boom(Device):
 		self.extend_time = extend_time
 		self.power = power
 
-	def setup(self):
 		self.PWM_PIN = 12
 		self.DIR_PIN = 26
 
@@ -357,7 +399,7 @@ class ReadyLight(Device):
 
 
 if __name__ == '__main__':
-	from diablo import *
+	#from diablo import *
 	import argparse
 	parser = argparse.ArgumentParser(description='Control Devices')
 	parser.add_argument("command", metavar="<command>", help="'gopro', 'rf', 'ricoh', 'boom', 'lock'")
@@ -383,8 +425,9 @@ if __name__ == '__main__':
 		controller = Lock()
 
 	controller.setup()
-
+	print(args.sig)
 	if args.sig == 'on':
+		print('activating...')
 		controller.activate()
 
 	elif args.sig == 'off':

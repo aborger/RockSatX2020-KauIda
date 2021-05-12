@@ -19,7 +19,7 @@ te1 = Detect('TE1', 16, 19, 'r') #16, 19
 limit = Limit(22, 27)
 
 # Initializing devices
-gopro = Gopro()
+gopro = gopro('gopro')
 rf = Rf()
 ricoh = Ricoh()
 boom = Boom(5, 75)
@@ -28,7 +28,7 @@ readyLight = ReadyLight(11)
 
 # Setup threads
 Rf_setup = threading.Thread(target=rf.setup)
-Gopro_activate = threading.Thread(target=gopro.activate)
+
 
 # deactivate threads
 Rf_deactivate = threading.Thread(target=rf.deactivate)
@@ -38,14 +38,10 @@ Gopro_deactivate = threading.Thread(target=gopro.deactivate)
 #-----------------------------------------------#
 #			Setup			#
 #-----------------------------------------------#
-gopro.setup()
-boom.setup()
-
 Rf_setup.start()
-Gopro_activate.start()
+
 
 Rf_setup.join()
-Gopro_activate.join()
 
 # Continues after TE1 is detected
 readyLight.activate()
@@ -91,3 +87,4 @@ ricoh.deactivate()
 Gopro_deactivate.start()
 Rf_deactivate.start()
 lock.deactivate()
+GPIO.cleanup()

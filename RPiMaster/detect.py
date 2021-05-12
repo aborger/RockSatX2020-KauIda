@@ -47,6 +47,7 @@ class Limit:
 
 	def doorShut(self):
 		if GPIO.input(self.detect) == 1:
+			print("Door is not shut")
 			return False
 		else:
 			print("Door shut detected!")

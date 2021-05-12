@@ -13,8 +13,8 @@
 
 using namespace std;
 
-int sensorPins[5] = {16, 1, 4, 5, 7};
-int prsPin = 6;
+int sensorPins[5] = {3, 4, 15, 17, 18};
+int prsPin = 2;
 int NUM_SENSORS = 5;
 unsigned char mask;
 unsigned char vals[5];
