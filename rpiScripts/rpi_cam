@@ -1,2 +1,2 @@
 rpi cam:
-raspivid -t 10000 -o testvid
+raspivid -t 10000 -o plzWork.h264
