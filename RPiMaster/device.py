@@ -6,7 +6,8 @@ from Adafruit_BluefruitLE.services import UART
 import uuid
 import dbus
 import os
-from theta import Theta
+import requests
+from .theta import Theta
 if __name__ != '__main__':
 	from RPiMaster.telemetry import write as write_telem
 
@@ -27,6 +28,18 @@ class Device:
 	def shutdown(self):
 		print('Shutting down ' + self.name + '...')
 
+
+#---------------------------------------------------------------#
+#				RPi Cam				#
+#---------------------------------------------------------------#
+class RpiCam(Device):
+	def __init__(self):
+		super().__init__('RPiCam')
+		import os
+
+	def activate(self, record_time):
+		super().activate()
+		os.system("raspivid -t " + record_time + " -o RPiCam_recording.h264")
 #---------------------------------------------------------------#
 #				GoPro				#
 #---------------------------------------------------------------#
@@ -227,7 +240,7 @@ class Rf(Device):
 #---------------------------------------------------------------#
 #			Ricoh					#
 #---------------------------------------------------------------#
-class Ricoh(device):
+class Ricoh(Device):
 	def __init__(self):
 		super().__init__('Rioch')
 
