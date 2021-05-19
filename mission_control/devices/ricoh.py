@@ -4,8 +4,11 @@
 * Authors: Aaron Borger <aborger@nnu.edu (307)534-6265>
 
            KuaIda KCC team <purvinis@hawaii.edu>
+
 """
 
+from devices.device import Device
+import os
 
 class Ricoh(Device):
 
@@ -15,6 +18,8 @@ class Ricoh(Device):
     def deactivate(self):
         os.system("ptpcam -R 0x1018,0xFFFFFFFF")	# Stops recording
         sleep(5)
-        os.system("sudo adb pull /sdcard/DCIM/100RICOH/ /home/pi/Videos")
+        os.system("sudo adb pull /sdcard/DCIM/100RICOH/ /home/pi/Videos")	# Downloads video
         print("Ricoh Video Transfer Complete")
-        os.system("ptpcam -D")
+
+    def shutdown(self):
+        return

@@ -15,8 +15,8 @@ LATCH_PIN = 19
 
 class TE_detect:
 
-    def setup(self):
-        GPIO.setup(INPUT_PIIN, GPIO.IN, pull_up_down = GPIO.PUD_DWON)
+    def __init__(self):
+        GPIO.setup(INPUT_PIN, GPIO.IN, pull_up_down = GPIO.PUD_DOWN)
         GPIO.setup(LATCH_PIN, GPIO.OUT)
 
     def wait_for_detect(self):
@@ -25,3 +25,5 @@ class TE_detect:
 
         print('TE has been detected')
         GPIO.output(LATCH_PIN, GPIO.LOW)		# Unlatches battery
+
+        GPIO.cleanup()

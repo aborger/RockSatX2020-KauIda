@@ -15,10 +15,10 @@ DETECT_PIN = 27
 
 class Limit:
 
-    def setup(self):
+    def __init__(self):
         GPIO.setup(POWER_PIN, GPIO.OUT)
         GPIO.output(POWER_PIN, 1)
-        GPIO.(DETECT_PIN, GPIO.IN, pull_up_down = GPIO.PUD_DOWN)
+        GPIO.setup(DETECT_PIN, GPIO.IN, pull_up_down = GPIO.PUD_DOWN)
 
     def doorShut(self):
         return not GPIO.input(DETECT_PIN)

@@ -6,19 +6,28 @@
 
 """
 
-from device import Device
+from devices.device import Device
+import RPi.GPIO as GPIO
+
+SERVO_PIN = 14
+ZERO = 2.5
+NINETY = 7.5
+ONE_EIGHTY = 12.5
 
 
 class Lock(Device):
 
-    def setup(self, servo_pin):
-        GPIO.setup(pin, GPIO.OUT)
-        self.servo = GPIO.PWM(servo_pin, 50)	# Sets servo to use PWM on servo_pin at 50 Hz
-        self.servo.start(2.5)
-        self.servo.ChangeDutyCycle(2.5)		# Sets servo to starting position
+    def __init__(self):
+        GPIO.setup(SERVO_PIN, GPIO.OUT)
+        self.servo = GPIO.PWM(SERVO_PIN, 50)	# Sets servo to use PWM on servo_pin at 50 Hz
+        self.servo.start(ZERO)
+        self.servo.ChangeDutyCycle(ZERO)	# Sets servo to starting position
 
     def activate(self):
-        self.servo.ChangeDutyCycle(12.5)	# Rotates servo to 90 degrees position
+        self.servo.ChangeDutyCycle(NINETY)	# Rotates servo to 90 degrees position
 
     def deactivate(self):
-        self.servo.ChangeDutyCycle(2.5)		# Sets servo to starting position
+        self.servo.ChangeDutyCycle(ZERO)	# Sets servo to starting position
+
+    def shutdown(self):
+        return
