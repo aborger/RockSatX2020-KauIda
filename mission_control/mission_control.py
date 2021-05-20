@@ -49,7 +49,7 @@ rf_setup.join()
 print('Setup Complete')
 print('Waiting for TE...')
 
-te1.wait_for_detect()
+#te1.wait_for_detect()
 # =============== Main ===============
 ricoh.activate()
 

@@ -16,8 +16,8 @@ GPIO.setup(LIMIT_DETECT_PIN, GPIO.IN, pull_up_down = GPIO.PUD_DOWN)
 
 try:
 	while True:
-		GPIO.wait_for_edge(LIMIT_DETECT_PIN, GPIO.RISING)
-		print('yes')
+		print(GPIO.input(LIMIT_DETECT_PIN))
+
 
 except KeyboardInterrupt:
 	GPIO.cleanup()
