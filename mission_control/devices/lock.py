@@ -18,7 +18,7 @@ ONE_EIGHTY = 12.5
 class Lock(Device):
 
     def __init__(self):
-        GPIO.setup(SERVO_PIN, GPIO.OUT)
+        #GPIO.setup(SERVO_PIN, GPIO.OUT)
         self.servo = GPIO.PWM(SERVO_PIN, 50)	# Sets servo to use PWM on servo_pin at 50 Hz
         self.servo.start(ZERO)
         self.servo.ChangeDutyCycle(ZERO)	# Sets servo to starting position

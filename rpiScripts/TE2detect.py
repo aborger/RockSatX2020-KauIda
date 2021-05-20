@@ -23,6 +23,7 @@ GPIO.setup(latch,GPIO.OUT)
 
 time.sleep(2)
 
+
 print("Waiting for TE2 to occur")
 GPIO.wait_for_edge(TE2,GPIO.RISING)
 print("Edge detected!")

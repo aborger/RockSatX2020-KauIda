@@ -19,18 +19,13 @@ DIR_PIN = 26
 class Boom(Device):
 
     def __init__(self):
-        GPIO.setup(PWM_PIN, GPIO.OUT)
-        GPIO.setup(DIR_PIN, GPIO.OUT)
-
-        time.sleep(1)
-
-        self.motor = GPIO.PWM(PWM_PIN, 100) 	# Sets motor to use PWM_PIN at 100 Hz
-
-    def setup(self):
-        return
+        self.motor = GPIO.PWM(PWM_PIN, 100)
 
     # Extends the boom
     def activate(self):
+
+
+
         GPIO.output(DIR_PIN, GPIO.HIGH)
         self.motor.start(Timing.BOOM_POWER)	# Activates motor in forward direction
         time.sleep(Timing.EXTEND_PERIOD)
@@ -38,7 +33,8 @@ class Boom(Device):
 
     # Descends the boom
     def deactivate(self):
-        GPIO.output(self.DIR_PIN, GPIO.LOW)	# Reverses motor
+        GPIO.setmode(GPIO.BCM)
+        GPIO.output(DIR_PIN, GPIO.LOW)	# Reverses motor
         self.motor.start(Timing.BOOM_POWER)	# Activates motor which now goes in reverse
         time.sleep(Timing.EXTEND_PERIOD)
         self.motor.start(0)			# Stops motor because power is 0

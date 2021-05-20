@@ -12,7 +12,7 @@ import os
 class ArduCam(Device):
 
     def activate(self):
-        os.system("raspivid -t " + Timing.RECORD_TIME + " -o ArduCam_recording.h264")
+        os.system("raspivid -t " + str(Timing.RECORD_TIME) + " -o ArduCam_recording.h264")
 
     def deactivate(self):
         return

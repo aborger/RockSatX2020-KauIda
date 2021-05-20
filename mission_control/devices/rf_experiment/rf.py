@@ -46,9 +46,9 @@ class RF(Device):
         if isinstance(sensor_val, dbus.Byte):		# The sensor value is type dbus.Byte so just return the string version
             if sensor_ID != -1:			# The gas sensor does not need to be converted
                 try:				# Occasionally data is messed up, so that data is skipped
-                    return str(item)
-                except:
-                    pass
+                    return str(sensor_val)
+                except Exception as e:
+                    print(e)
             return ''
 
     # Adafruit_BluefruitLE must be run in threads

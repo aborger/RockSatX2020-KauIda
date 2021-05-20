@@ -19,6 +19,10 @@ from devices.arducam import ArduCam
 
 NUM_EXT = Timing.EXTEND_TIME / Timing.EXTEND_PERIOD	# The number of RF datapoints taken
 
+import config.pins
+GPIO.setmode(GPIO.BCM)
+config.pins.setup()
+
 print('Initializing...')
 
 # Initializing detects
@@ -36,13 +40,16 @@ arduCam = ArduCam()
 rf_setup = threading.Thread(target=rf.setup)
 rf_deactivate = threading.Thread(target=rf.deactivate)
 
-# Setting up rf
+arduCam.activate()
+
+# Setting up
 rf_setup.start()
 rf_setup.join()
 
 print('Setup Complete')
 print('Waiting for TE...')
 
+te1.wait_for_detect()
 # =============== Main ===============
 ricoh.activate()
 
@@ -69,9 +76,9 @@ print('Retracting boom...')
 
 while not limit.doorShut():
     rf_activate = threading.Thread(target=rf.activate)
-    rf.daemon = True
-    rf.start()
-    boom.deactivate(Timing.TIME_AT_EXTENSION)
+    rf_activate.daemon = True
+    rf_activate.start()
+    boom.deactivate()
     extension -= 1
 
 
