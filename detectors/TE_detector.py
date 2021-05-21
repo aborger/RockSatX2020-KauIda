@@ -14,8 +14,6 @@ import config.pins as pins
 class TE_detect:
 
     def wait_for_detect(self):
-        print('Waiting to detect TE...')
         GPIO.wait_for_edge(pins.TE_INPUT_PIN, GPIO.RISING)	# Pauses until detection is detected
 
-        print('TE has been detected')
         GPIO.output(pins.TE_LATCH_PIN, GPIO.LOW)		# Unlatches battery

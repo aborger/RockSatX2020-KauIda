@@ -5,8 +5,12 @@
 import RPi.GPIO as GPIO
 import threading
 import time
+import os
+
+os.chdir('/home/pi/RockSatX2020-KauIda/')
 
 from timing import Timing
+import util
 
 from detectors.TE_detector import TE_detect
 from detectors.limit import Limit
@@ -19,11 +23,13 @@ from devices.arducam import ArduCam
 
 import config.pins as pins
 
-pins.setup()
 
 NUM_EXT = Timing.EXTEND_TIME / Timing.EXTEND_PERIOD	# The number of RF datapoints taken
 
-print('Initializing...')
+util.start_log()
+util.log('Initializing...')
+
+pins.setup()
 
 # Initializing detects
 te1 = TE_detect()
@@ -44,15 +50,16 @@ rf_deactivate = threading.Thread(target=rf.deactivate)
 rf_setup.start()
 rf_setup.join()
 
-print('Setup Complete')
-print('Waiting for TE...')
+util.log('Setup Complete')
+util.log('Waiting for TE...')
 
+te1.wait_for_detect()
 # =============== Main ===============
 ricoh.activate()
 
 # Extend boom and take rf measurements
 extension = 0
-print('Extending boom...')
+util.log('Extending boom...')
 
 while extension < NUM_EXT:
     rf_activate = threading.Thread(target=rf.activate)
@@ -63,13 +70,13 @@ while extension < NUM_EXT:
     extension += 1
 
 
-print('Holding boom at extension...')
+util.log('Holding boom at extension...')
 
 time.sleep(Timing.TIME_AT_EXTENSION)
 
 
 # Retract and take measurements
-print('Retracting boom...')
+util.log('Retracting boom...')
 
 while not limit.doorShut():
     rf_activate = threading.Thread(target=rf.activate)
@@ -90,5 +97,5 @@ rf_deactivate.start()
 
 GPIO.cleanup()		# Resets all output pins to input to avoid issues
 
-print('Success')
+util.log('Success')
 

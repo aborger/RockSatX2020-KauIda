@@ -11,6 +11,9 @@ from devices.device import Device
 import os
 import time
 
+OUTPUT_FILE = '/home/pi/output/ricoh'
+
+
 class Ricoh(Device):
 
     def activate(self):
@@ -19,7 +22,7 @@ class Ricoh(Device):
     def deactivate(self):
         os.system("ptpcam -R 0x1018,0xFFFFFFFF")	# Stops recording
         time.sleep(5)
-        os.system("sudo adb pull /sdcard/DCIM/100RICOH/ /home/pi/Videos")	# Downloads video
+        os.system("sudo adb pull /sdcard/DCIM/100RICOH/ " + OUTPUT_FILE)	# Downloads video
         print("Ricoh Video Transfer Complete")
 
     def shutdown(self):

@@ -23,6 +23,7 @@ from Adafruit_BluefruitLE.services import UART
 import uuid
 import dbus
 
+OUTPUT_FILE = '/home/pi/output/rf_output.csv'
 
 class RF(Device):
 
@@ -99,7 +100,7 @@ class RF(Device):
 	}
 
         # Setup rfOutput.csv
-        output_file = open("rfOutput.csv", "w")
+        output_file = open(OUTPUT_FILE, "w")
         output_file.write('RSSI (dB),TEMP (*C),PRESSURE (hPa),HUMIDITY (%),GAS (KOhms),ALT (m)\n')
         output_file.close()
 
@@ -116,7 +117,7 @@ class RF(Device):
         alt	 = str(self.__unwrap(self.chars["alt"].read_value(), 4))
 
         # Output data through standard output, .csv, and telemetry
-        output_file = open("rfOutput.csv", "a")
+        output_file = open(OUTPUT_FILE, "a")
         print(' ' + rssi + '    ' + temp + '   ' + pressure + '    ' + humidity + '    ' + gas + '    ' + alt)
         output_file.write(rssi + ',' + temp + ',' + pressure + ',' + humidity + ',' + gas + ',' + alt + '\n')
         output_file.close()
