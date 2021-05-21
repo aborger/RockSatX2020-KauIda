@@ -1,2 +1,0 @@
-rpi cam:
-raspivid -t 10000 -o plzWork.h264
