@@ -1,0 +1,9 @@
+[Unit]
+Description=Control Mission
+After=multi-user.target
+
+[Service]
+ExecStart=python3 /home/pi/RockSatX2020-KauIda/Mission_Control.py
+
+[Install]
+WantedBy=multi-user.target
