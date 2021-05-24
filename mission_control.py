@@ -9,7 +9,7 @@ import os
 
 os.chdir('/home/pi/RockSatX2020-KauIda/')
 
-from timing import Timing
+from config.timing import Timing
 import util
 
 from detectors.TE_detector import TE_detect
@@ -45,16 +45,23 @@ arduCam = ArduCam()
 # Setting up threads
 rf_setup = threading.Thread(target=rf.setup)
 rf_deactivate = threading.Thread(target=rf.deactivate)
+ardu_activate = threading.Thread(target=arduCam.activate)
 
 # Setting up rf
 rf_setup.start()
 rf_setup.join()
 
+
 util.log('Setup Complete')
+
+ardu_activate.start()
+lock.activate()
+
 util.log('Waiting for TE...')
 
 te1.wait_for_detect()
 # =============== Main ===============
+lock.deactivate()
 ricoh.activate()
 
 # Extend boom and take rf measurements
@@ -80,12 +87,12 @@ util.log('Retracting boom...')
 
 while not limit.doorShut():
     rf_activate = threading.Thread(target=rf.activate)
-    rf.daemon = True
-    rf.start()
-    boom.deactivate(Timing.TIME_AT_EXTENSION)
+    rf_activate.daemon = True
+    rf_activate.start()
+    boom.deactivate()
     extension -= 1
 
-
+util.log('Door shut detected...')
 #=============== Cleanup ==================
 lock.activate()
 boom.shutdown()

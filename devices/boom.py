@@ -7,8 +7,9 @@
 * Author: Aaron Borger <aborger@nnu.edu (307)534-6265>
 
 """
+
 from devices.device import Device
-from timing import Timing
+from config.timing import Timing
 import RPi.GPIO as GPIO
 import time
 import config.pins as pins
@@ -24,18 +25,19 @@ class Boom(Device):
 
     # Extends the boom
     def activate(self):
-        GPIO.output(pins.BOOM_DIR_PIN, GPIO.HIGH)
+        GPIO.output(pins.BOOM_DIR_PIN, GPIO.LOW)
         self.motor.start(Timing.BOOM_POWER)	# Activates motor in forward direction
         time.sleep(Timing.EXTEND_PERIOD)
         self.motor.start(0)			# Pauses motor for an un-noticable amount of time
 
     # Descends the boom
     def deactivate(self):
-        GPIO.output(pins.BOOM_DIR_PIN, GPIO.LOW)	# Reverses motor
+        GPIO.output(pins.BOOM_DIR_PIN, GPIO.HIGH)	# Reverses motor
         self.motor.start(Timing.BOOM_POWER)	# Activates motor which now goes in reverse
         time.sleep(Timing.EXTEND_PERIOD)
         self.motor.start(0)			# Stops motor because power is 0
 
     def shutdown(self):
         self.motor.start(0)			# Stops motor because power is 0
+
 

@@ -18,9 +18,9 @@ def setup():
 
     GPIO.setmode(GPIO.BCM)
 
-    GPIO.setup(LIMIT_POWER_PIN, GPIO.OUT)
-    GPIO.output(LIMIT_POWER_PIN, 1)
-    GPIO.setup(LIMIT_DETECT_PIN, GPIO.IN, pull_up_down = GPIO.PUD_DOWN)
+    #GPIO.setup(LIMIT_POWER_PIN, GPIO.OUT)
+    #GPIO.output(LIMIT_POWER_PIN, 1)
+    #GPIO.setup(LIMIT_DETECT_PIN, GPIO.IN, pull_up_down = GPIO.PUD_DOWN)
 
     GPIO.setup(BOOM_PWM_PIN, GPIO.OUT)
     GPIO.setup(BOOM_DIR_PIN, GPIO.OUT)

@@ -6,5 +6,6 @@ def start_log():
     print('------------------- Log --------------------', file=open(LOG, "w"))
 
 def log(log_str):
+    print(log_str)
     print('[', time.asctime(time.localtime(time.time())), ']', log_str, file=open(LOG, "a"))
 

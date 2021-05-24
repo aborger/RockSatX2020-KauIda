@@ -6,15 +6,17 @@
 
 """
 from devices.device import Device
-from timing import Timing
+from config.timing import Timing
 import os
+from util import log
 
 OUTPUT_FILE = '/home/pi/output/ArduCam_recording.h264'
 
 class ArduCam(Device):
 
     def activate(self):
-        os.system("raspivid -t " + Timing.RECORD_TIME + " -o " + OUTPUT_FILE)
+        log('Arducam recording')
+        os.system("raspivid -t " + str(Timing.RECORD_TIME) + " -o " + OUTPUT_FILE)
 
     def deactivate(self):
         return

@@ -22,6 +22,7 @@ import Adafruit_BluefruitLE
 from Adafruit_BluefruitLE.services import UART
 import uuid
 import dbus
+from util import log
 
 OUTPUT_FILE = '/home/pi/output/rf_output.csv'
 
@@ -47,10 +48,11 @@ class RF(Device):
         if isinstance(sensor_val, dbus.Byte):		# The sensor value is type dbus.Byte so just return the string version
             if sensor_ID != -1:			# The gas sensor does not need to be converted
                 try:				# Occasionally data is messed up, so that data is skipped
-                    return str(item)
-                except:
-                    pass
+                    return str(sensor_val)
+                except Exception as e:
+                    print(e)
             return ''
+
 
     # Adafruit_BluefruitLE must be run in threads
     # To ensure encapsulation and ease of reading the main script the setup, activation and deactivation thread methods are required
@@ -72,7 +74,7 @@ class RF(Device):
         self.ble.disconnect_devices()
 
         try:
-            print('Scanning for devices...')
+            log('Scanning for devices...')
             adapter.start_scan()
             self.device = UART.find_device()
             if self.device is None:
@@ -82,7 +84,7 @@ class RF(Device):
             adapter.stop_scan()
 
         self.device.connect()
-
+        log('RF Connected')
         # Discover Bluetooth services and characteristics
         self.device.discover([SENSE_SERVICE_UUID], [RSSI_CHAR_UUID,
                               TEMP_CHAR_UUID, PRESS_CHAR_UUID,
@@ -100,9 +102,15 @@ class RF(Device):
 	}
 
         # Setup rfOutput.csv
+        log('Setting up output file')
         output_file = open(OUTPUT_FILE, "w")
         output_file.write('RSSI (dB),TEMP (*C),PRESSURE (hPa),HUMIDITY (%),GAS (KOhms),ALT (m)\n')
         output_file.close()
+        log('RF has been setup')
+        #raise
+
+
+
 
 
     def __activate_thread(self):
@@ -117,6 +125,7 @@ class RF(Device):
         alt	 = str(self.__unwrap(self.chars["alt"].read_value(), 4))
 
         # Output data through standard output, .csv, and telemetry
+        log("Writing to rf output")
         output_file = open(OUTPUT_FILE, "a")
         print(' ' + rssi + '    ' + temp + '   ' + pressure + '    ' + humidity + '    ' + gas + '    ' + alt)
         output_file.write(rssi + ',' + temp + ',' + pressure + ',' + humidity + ',' + gas + ',' + alt + '\n')
@@ -130,7 +139,10 @@ class RF(Device):
     def setup(self):
         self.ble = Adafruit_BluefruitLE.get_provider()
         self.ble.initialize()
+        #try:
         self.ble.run_mainloop_with(self.__setup_thread)
+        #except:
+        #    pass
 
     def activate(self):
         self.ble.run_mainloop_with(self.__activate_thread)

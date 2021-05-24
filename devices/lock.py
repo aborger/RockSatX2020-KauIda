@@ -9,6 +9,7 @@
 from devices.device import Device
 import RPi.GPIO as GPIO
 import config.pins as pins
+from time import sleep
 
 ZERO = 2.5
 NINETY = 7.5
@@ -20,7 +21,8 @@ class Lock(Device):
     def __init__(self):
         self.servo = GPIO.PWM(pins.SERVO_PIN, 50)	# Sets servo to use PWM on servo_pin at 50 Hz
         self.servo.start(ZERO)
-        self.servo.ChangeDutyCycle(ZERO)		# Sets servo to starting position
+        sleep(1)
+        #self.servo.ChangeDutyCycle(ZERO)		# Sets servo to starting position
 
     def activate(self):
         self.servo.ChangeDutyCycle(NINETY)		# Rotates servo to 90 degrees position
