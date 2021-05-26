@@ -11,7 +11,7 @@
 class Timing:
 
     # Boom Timing
-    EXTEND_TIME = 10 # 60		# Time it takes for the boom to completely extend or descend
+    EXTEND_TIME = 60 # 60		# Time it takes for the boom to completely extend or descend
 
     EXTEND_PERIOD = 1		# Rate at which RF data is taken
 
@@ -21,4 +21,4 @@ class Timing:
 
 
     # ArduCam Timing
-    RECORD_TIME = 60000 #60 seconds, Not final
+    RECORD_TIME = (15 + EXTEND_TIME * 2 + TIME_AT_EXTENSION) * 1000 #60 seconds, Not final

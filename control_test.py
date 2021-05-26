@@ -26,15 +26,23 @@ if __name__ == '__main__':
     elif args.device == 'ricoh':
         from devices.ricoh import Ricoh
         device = Ricoh()
+    elif args.device == 'arducam':
+        from devices.arducam import ArduCam
+        device = ArduCam()
 
     else:
         raise ValueError
 
-    if args.function == 'activate':
-        device.activate()
-    elif args.function == 'deactivate':
-        device.deactivate()
-    else:
-        raise ValueError
+    try:
+      if args.function == 'activate':
+            device.activate()
+      elif args.function == 'deactivate':
+            device.deactivate()
+      else:
+            raise ValueError
+    except KeyboardInterrupt:
+        GPIO.cleanup()
+    except Exception as e:
+        print(e)
 
 GPIO.cleanup()

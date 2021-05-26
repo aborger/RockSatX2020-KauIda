@@ -12,6 +12,8 @@ TE_LATCH_PIN = 19
 
 SERVO_PIN = 14
 
+TEST_MODE_PWR = 24
+TEST_MODE_DETECT = 25
 
 
 def setup():

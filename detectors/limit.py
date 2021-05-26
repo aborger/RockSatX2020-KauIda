@@ -22,11 +22,10 @@ class Limit:
 
         #def doorShut(self):
         #print(GPIO.input(27))
-        
+
         if GPIO.input(pins.LIMIT_DETECT_PIN) == 1:
-            print("Door is not shut")
             return False
         else:
             print("Door shut detected!")
             return True
-        
+

@@ -45,24 +45,34 @@ arduCam = ArduCam()
 # Setting up threads
 rf_setup = threading.Thread(target=rf.setup)
 rf_deactivate = threading.Thread(target=rf.deactivate)
+rf_usb = threading.Thread(target=rf.power_usb)
+rf_pitooth = threading.Thread(target=rf.start_pitooth)
 ardu_activate = threading.Thread(target=arduCam.activate)
-
-# Setting up rf
-rf_setup.start()
-rf_setup.join()
+ricoh_activate = threading.Thread(target=ricoh.activate)
 
 
 util.log('Setup Complete')
 
 ardu_activate.start()
-lock.activate()
+
 
 util.log('Waiting for TE...')
 
 te1.wait_for_detect()
 # =============== Main ===============
+rf_usb.start()
+rf_pitooth.start()
+
+rf_usb.join()
+rf_pitooth.join()
+print('usb and pitooth on')
+
+rf_setup.start()
+ricoh_activate.start()
+
+rf_setup.join()
+ricoh_activate.join()
 lock.deactivate()
-ricoh.activate()
 
 # Extend boom and take rf measurements
 extension = 0
@@ -90,19 +100,21 @@ while not limit.doorShut():
     rf_activate.daemon = True
     rf_activate.start()
     boom.deactivate()
-    extension -= 1
 
 util.log('Door shut detected...')
+extension = 5
+while extension > 0:
+    boom.deactivate()
+    extension -= 1
 #=============== Cleanup ==================
+#time.sleep(5)
 lock.activate()
 boom.shutdown()
 ricoh.deactivate()
 rf_deactivate.start()
 
-
-
-
 GPIO.cleanup()		# Resets all output pins to input to avoid issues
+os.system('sudo /usr/local/sbin/kill-rf.sh')
 
 util.log('Success')
 

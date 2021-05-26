@@ -25,10 +25,10 @@ class Lock(Device):
         #self.servo.ChangeDutyCycle(ZERO)		# Sets servo to starting position
 
     def activate(self):
-        self.servo.ChangeDutyCycle(NINETY)		# Rotates servo to 90 degrees position
+        self.servo.ChangeDutyCycle(ZERO)		# Rotates servo to 90 degrees position
 
     def deactivate(self):
-        self.servo.ChangeDutyCycle(ZERO)		# Sets servo to starting position
+        self.servo.ChangeDutyCycle(NINETY)		# Sets servo to starting position
 
     def shutdown(self):
         return

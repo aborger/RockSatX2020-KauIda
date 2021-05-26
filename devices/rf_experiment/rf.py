@@ -32,7 +32,6 @@ class RF(Device):
         self.sensor_values = [0, 0, 0, 0, 0]	# The values of the sensors that are edited by __unwrap and written to telemetry and rfOutput.csv
         self.ble = None
 
-        os.system("devices/rf_experiment/bluetoothON.sh")		# Ensures the bluetoothctl adapter is on
 
 
     # Formats data transmitted from bluetooth into a string
@@ -43,6 +42,7 @@ class RF(Device):
                 unwrapped_str += self.__unwrap(item, sensor_ID)
 
             unwrapped_str = unwrapped_str.replace('=', '')	# If the value is smaller than normal, the bluetooth module places an '=' in the extra digits
+            unwrapped_str = unwrapped_str.replace('+', '')
             return unwrapped_str
 
         if isinstance(sensor_val, dbus.Byte):		# The sensor value is type dbus.Byte so just return the string version
@@ -109,8 +109,16 @@ class RF(Device):
         log('RF has been setup')
         #raise
 
+    def power_usb(self):
+        print('usb start')
+        os.system('sudo /usr/local/sbin/start-rf.sh')
+        print('usb done')
 
-
+    def start_pitooth(self):
+        print('pitooth start')
+        os.system('sudo systemctl enable bluetooth')
+        os.system('sudo systemctl start bluetooth')
+        print('pitooth done')
 
 
     def __activate_thread(self):
@@ -125,7 +133,6 @@ class RF(Device):
         alt	 = str(self.__unwrap(self.chars["alt"].read_value(), 4))
 
         # Output data through standard output, .csv, and telemetry
-        log("Writing to rf output")
         output_file = open(OUTPUT_FILE, "a")
         print(' ' + rssi + '    ' + temp + '   ' + pressure + '    ' + humidity + '    ' + gas + '    ' + alt)
         output_file.write(rssi + ',' + temp + ',' + pressure + ',' + humidity + ',' + gas + ',' + alt + '\n')
@@ -137,6 +144,7 @@ class RF(Device):
 
     # These methods are inherited from device.py and are called in the main mission_control.py script
     def setup(self):
+        os.system("devices/rf_experiment/bluetoothON.sh")               # Ensures the bluetoothctl adapter is on
         self.ble = Adafruit_BluefruitLE.get_provider()
         self.ble.initialize()
         #try:
