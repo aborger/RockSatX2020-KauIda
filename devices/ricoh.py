@@ -11,9 +11,8 @@ from devices.device import Device
 import os
 import time
 from util import log
+from config.out_files import Files
 import subprocess
-
-OUTPUT_FILE = '/home/pi/output/ricoh'
 
 
 class Ricoh(Device):

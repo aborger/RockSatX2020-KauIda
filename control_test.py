@@ -21,8 +21,12 @@ if __name__ == '__main__':
         from devices.lock import Lock
         device = Lock()
     elif args.device == 'rf':
+        import threading
         from devices.rf_experiment.rf import RF
         device = RF()
+        rf_setup = threading.Thread(target=device.setup)
+        rf_setup.start()
+        rf_setup.join()
     elif args.device == 'ricoh':
         from devices.ricoh import Ricoh
         device = Ricoh()
@@ -35,7 +39,11 @@ if __name__ == '__main__':
 
     try:
       if args.function == 'activate':
-            device.activate()
+          if args.device == 'rf':
+              rf_activate = threading.Thread(target=device.activate)
+              rf_activate.start()
+          else:
+              device.activate()
       elif args.function == 'deactivate':
             device.deactivate()
       else:
@@ -45,4 +53,4 @@ if __name__ == '__main__':
     except Exception as e:
         print(e)
 
-GPIO.cleanup()
+#GPIO.cleanup()

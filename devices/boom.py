@@ -27,17 +27,15 @@ class Boom(Device):
     def activate(self):
         GPIO.output(pins.BOOM_DIR_PIN, GPIO.LOW)
         self.motor.start(Timing.BOOM_POWER)	# Activates motor in forward direction
-        time.sleep(Timing.EXTEND_PERIOD)
+        time.sleep(Timing.EXTEND_TIME)
         self.motor.start(0)			# Pauses motor for an un-noticable amount of time
 
     # Descends the boom
     def deactivate(self):
         GPIO.output(pins.BOOM_DIR_PIN, GPIO.HIGH)	# Reverses motor
-        self.motor.start(Timing.BOOM_POWER)	# Activates motor which now goes in reverse
-        time.sleep(Timing.EXTEND_PERIOD)
-        self.motor.start(0)			# Stops motor because power is 0
+        self.motor.start(Timing.BOOM_POWER)
+        time.sleep(10)
 
     def shutdown(self):
-        self.motor.start(0)			# Stops motor because power is 0
-
+        self.motor.start(0)
 

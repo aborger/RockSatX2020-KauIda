@@ -16,6 +16,8 @@
 
 from devices.device import Device
 from devices.rf_experiment import telemetry
+from config.timing import Timing
+from config.out_files import Files
 
 import os
 import Adafruit_BluefruitLE
@@ -23,8 +25,8 @@ from Adafruit_BluefruitLE.services import UART
 import uuid
 import dbus
 from util import log
+from time import sleep
 
-OUTPUT_FILE = '/home/pi/output/rf_output.csv'
 
 class RF(Device):
 
@@ -32,10 +34,14 @@ class RF(Device):
         self.sensor_values = [0, 0, 0, 0, 0]	# The values of the sensors that are edited by __unwrap and written to telemetry and rfOutput.csv
         self.ble = None
 
+        mission_num = Files.get_mission_num()
+
+        self.OUTPUT_FILE = Files.OUT_DIR + 'rf/mission' + mission_num + '.csv'
 
 
     # Formats data transmitted from bluetooth into a string
     def __unwrap(self, sensor_val, sensor_ID):
+
         if isinstance(sensor_val, (dbus.Array, list, tuple)):	# Sensor data varies in type, if it is one of these it is unwrapped again to get raw dbus.Byte value
             unwrapped_str = ''
             for item in sensor_val:
@@ -43,15 +49,22 @@ class RF(Device):
 
             unwrapped_str = unwrapped_str.replace('=', '')	# If the value is smaller than normal, the bluetooth module places an '=' in the extra digits
             unwrapped_str = unwrapped_str.replace('+', '')
+
+            integer = int(unwrapped_str)
+            self.sensor_values[sensor_ID] = integer
             return unwrapped_str
 
         if isinstance(sensor_val, dbus.Byte):		# The sensor value is type dbus.Byte so just return the string version
-            if sensor_ID != -1:			# The gas sensor does not need to be converted
+            if int(sensor_val) == 0:
+                return ''
+            elif sensor_ID != -1:			# The gas sensor does not need to be converted
                 try:				# Occasionally data is messed up, so that data is skipped
-                    return str(sensor_val)
+                    digit = int(hex(int(sensor_val)), 0) - 48
+                    return str(digit)
                 except Exception as e:
                     print(e)
-            return ''
+            else:
+                return str(0)
 
 
     # Adafruit_BluefruitLE must be run in threads
@@ -67,6 +80,7 @@ class RF(Device):
         ALT_CHAR_UUID     = uuid.UUID('00000425-0000-1000-8000-00805f9b34fb')
 
         self.ble.clear_cached_data()
+
 
         adapter = self.ble.get_default_adapter()
         adapter.power_on()
@@ -86,10 +100,11 @@ class RF(Device):
         self.device.connect()
         log('RF Connected')
         # Discover Bluetooth services and characteristics
+        print('disconvering...')
         self.device.discover([SENSE_SERVICE_UUID], [RSSI_CHAR_UUID,
                               TEMP_CHAR_UUID, PRESS_CHAR_UUID,
                               HUM_CHAR_UUID, GAS_CHAR_UUID, ALT_CHAR_UUID])
-
+        print('discovered')
         # Find Bluetooth services and characteristics
         sensors = self.device.find_service(SENSE_SERVICE_UUID)
         self.chars = {
@@ -103,7 +118,7 @@ class RF(Device):
 
         # Setup rfOutput.csv
         log('Setting up output file')
-        output_file = open(OUTPUT_FILE, "w")
+        output_file = open(self.OUTPUT_FILE, "w")
         output_file.write('RSSI (dB),TEMP (*C),PRESSURE (hPa),HUMIDITY (%),GAS (KOhms),ALT (m)\n')
         output_file.close()
         log('RF has been setup')
@@ -133,7 +148,7 @@ class RF(Device):
         alt	 = str(self.__unwrap(self.chars["alt"].read_value(), 4))
 
         # Output data through standard output, .csv, and telemetry
-        output_file = open(OUTPUT_FILE, "a")
+        output_file = open(self.OUTPUT_FILE, "a")
         print(' ' + rssi + '    ' + temp + '   ' + pressure + '    ' + humidity + '    ' + gas + '    ' + alt)
         output_file.write(rssi + ',' + temp + ',' + pressure + ',' + humidity + ',' + gas + ',' + alt + '\n')
         output_file.close()
@@ -152,8 +167,20 @@ class RF(Device):
         #except:
         #    pass
 
-    def activate(self):
+    # this is needed because the ble library is dumb and doesnt return
+    def __secondary_activate(self):
         self.ble.run_mainloop_with(self.__activate_thread)
+
+    def activate(self):
+        import threading
+
+        period = 1 / Timing.RF_FREQUENCY
+
+        for run in range(0, Timing.RF_ACTIVATE_TIME):
+            rf_activate = threading.Thread(target=self.__secondary_activate)
+            rf_activate.daemon = True
+            rf_activate.start()
+            sleep(period)
 
     def deactivate(self):
         self.ble.run_mainloop_with(self.__deactivate_thread)

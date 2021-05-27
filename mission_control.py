@@ -10,6 +10,7 @@ import os
 os.chdir('/home/pi/RockSatX2020-KauIda/')
 
 from config.timing import Timing
+from config.out_files import Files
 import util
 
 from detectors.TE_detector import TE_detect
@@ -23,11 +24,9 @@ from devices.arducam import ArduCam
 
 import config.pins as pins
 
-
-NUM_EXT = Timing.EXTEND_TIME / Timing.EXTEND_PERIOD	# The number of RF datapoints taken
-
 util.start_log()
 util.log('Initializing...')
+Files.iterate()
 
 pins.setup()
 
@@ -47,6 +46,7 @@ rf_setup = threading.Thread(target=rf.setup)
 rf_deactivate = threading.Thread(target=rf.deactivate)
 rf_usb = threading.Thread(target=rf.power_usb)
 rf_pitooth = threading.Thread(target=rf.start_pitooth)
+rf_activate = threading.Thread(target=rf.activate)
 ardu_activate = threading.Thread(target=arduCam.activate)
 ricoh_activate = threading.Thread(target=ricoh.activate)
 
@@ -75,17 +75,11 @@ ricoh_activate.join()
 lock.deactivate()
 
 # Extend boom and take rf measurements
-extension = 0
 util.log('Extending boom...')
 
-while extension < NUM_EXT:
-    rf_activate = threading.Thread(target=rf.activate)
-    rf_activate.daemon = True
-    rf_activate.start()
+rf_activate.start()
 
-    boom.activate()
-    extension += 1
-
+boom.activate()
 
 util.log('Holding boom at extension...')
 
@@ -95,21 +89,20 @@ time.sleep(Timing.TIME_AT_EXTENSION)
 # Retract and take measurements
 util.log('Retracting boom...')
 
+boom.deactivate()
+
 while not limit.doorShut():
-    rf_activate = threading.Thread(target=rf.activate)
-    rf_activate.daemon = True
-    rf_activate.start()
-    boom.deactivate()
+    time.sleep(.1)
 
 util.log('Door shut detected...')
-extension = 5
-while extension > 0:
-    boom.deactivate()
-    extension -= 1
+util.log('Overdriving...')
+
+time.sleep(Timing.BOOM_OVER_DRIVE)
+boom.shutdown()
+
 #=============== Cleanup ==================
 #time.sleep(5)
 lock.activate()
-boom.shutdown()
 ricoh.deactivate()
 rf_deactivate.start()
 

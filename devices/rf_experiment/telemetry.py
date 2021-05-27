@@ -10,5 +10,5 @@ lib.write_sense.restype = ctypes.c_void_p # Telem_write returns void
 
 
 def write(sval):
-	lib.write_sense(int(sval[0]), int(sval[1]), int(sval[2]), int(sval[3]), int(sval[4]))
+    lib.write_sense(sval[0], sval[1], sval[2], sval[3], sval[4])
 
