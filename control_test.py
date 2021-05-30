@@ -35,7 +35,7 @@ if __name__ == '__main__':
         rf_usb.join()
         rf_pitooth.join()
 
-        sleep(8)
+        sleep(RF_CONNECT_DELAY)
 
         rf_setup.start()
         rf_setup.join()
@@ -57,6 +57,9 @@ if __name__ == '__main__':
           if args.device == 'rf':
               rf_activate = threading.Thread(target=device.activate)
               rf_activate.start()
+          elif args.device == 'boom':
+              device.activate()
+              sleep(10)
           else:
               device.activate()
       elif args.function == 'deactivate':

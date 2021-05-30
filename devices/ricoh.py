@@ -24,7 +24,7 @@ class Ricoh(Device):
 
     def activate(self):
         #self._wake_up()
-        time.sleep(5)
+        time.sleep(10)
         try:
             subprocess.call("sudo ptpcam -R 0x101c,0,0,1", shell=True)		# Starts recording
         except:
@@ -35,7 +35,7 @@ class Ricoh(Device):
 
     def deactivate(self):
         subprocess.call("sudo ptpcam -R 0x1018,0xFFFFFFFF", shell=True)	# Stops recording
-        time.sleep(2)
+        time.sleep(4)
 
         # Get ricoh videos
         #os.system("sudo adb pull /sdcard/DCIM/100RICOH/ " + OUTPUT_FILE)	# Downloads video

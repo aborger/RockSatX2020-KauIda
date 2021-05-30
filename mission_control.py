@@ -68,7 +68,7 @@ rf_pitooth.join()
 util.log('usb and pitooth on')
 
 ricoh_activate.start()
-time.sleep(8)
+time.sleep(RF_CONNECT_DELAY)
 
 rf_setup.start()
 

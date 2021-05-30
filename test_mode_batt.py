@@ -10,9 +10,11 @@ def is_test():
     GPIO.setup(pins.TEST_MODE_DETECT, GPIO.IN, pull_up_down = GPIO.PUD_DOWN
 
     if GPIO.input(pins.TEST_MODE_DETECT) == 1:
+        from devices.boom import Boom
         from devices.rf_experiment.rf import RF
 
         rf = RF()
+        boom = Boom()
 
         # setup threads
         rf_setup = threading.Thread(target=rf.setup)
@@ -20,6 +22,7 @@ def is_test():
         rf_activate = threading.Thread(target=rf.activate)
         rf_usb = threading.Thread(target=rf.power_usb)
         rf_pitooth = threading.Thread(target=rf.start_pitooth)
+        pre_launch = threading.thread(target=pre_launch_setup)
 
         rf_usb.start()
         rf_pitooth.start()
@@ -27,15 +30,13 @@ def is_test():
         rf_usb.join()
         rf_pitooth.join()
 
-        sleep(RF_CONNECT_DELAY)
-
         rf_setup.start()
         rf_setup.join()
 
         rf_activate.start()
-
-
-
+        boom.activate()
+        sleep(10)
+        pre_launch.start()
 
         while True:
             sleep(1) # Doesnt continue with mission_control script
