@@ -47,8 +47,9 @@ class RF(Device):
             for item in sensor_val:
                 unwrapped_str += self.__unwrap(item, sensor_ID)
 
-            unwrapped_str = unwrapped_str.replace('=', '')	# If the value is smaller than normal, the bluetooth module places an '=' in the extra digits
-            unwrapped_str = unwrapped_str.replace('+', '')
+            #unwrapped_str = unwrapped_str.replace('=', '')	# If the value is smaller than normal, the bluetooth module places an '=' in the extra digits
+            #unwrapped_str = unwrapped_str.replace('+', '')
+            #print('unwrapped:', unwrapped_str)
 
             integer = int(unwrapped_str)
             self.sensor_values[sensor_ID] = integer
@@ -59,7 +60,11 @@ class RF(Device):
                 return ''
             elif sensor_ID != -1:			# The gas sensor does not need to be converted
                 try:				# Occasionally data is messed up, so that data is skipped
+                    #print('sensor val: ', sensor_val)
+
                     digit = int(hex(int(sensor_val)), 0) - 48
+                    #print('digit: ', digit)
+
                     return str(digit)
                 except Exception as e:
                     print(e)
@@ -100,7 +105,7 @@ class RF(Device):
         self.device.connect()
         log('RF Connected')
         # Discover Bluetooth services and characteristics
-        print('disconvering...')
+        print('discovering...')
         self.device.discover([SENSE_SERVICE_UUID], [RSSI_CHAR_UUID,
                               TEMP_CHAR_UUID, PRESS_CHAR_UUID,
                               HUM_CHAR_UUID, GAS_CHAR_UUID, ALT_CHAR_UUID])

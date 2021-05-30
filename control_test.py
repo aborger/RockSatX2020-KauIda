@@ -1,6 +1,7 @@
 import RPi.GPIO as GPIO
 from devices.lock import Lock
 import config.pins as pins
+from time import sleep
 
 if __name__ == '__main__':
     import argparse
@@ -24,9 +25,23 @@ if __name__ == '__main__':
         import threading
         from devices.rf_experiment.rf import RF
         device = RF()
+        rf_usb = threading.Thread(target=device.power_usb)
+        rf_pitooth = threading.Thread(target=device.start_pitooth)
         rf_setup = threading.Thread(target=device.setup)
+
+        rf_usb.start()
+        rf_pitooth.start()
+
+        rf_usb.join()
+        rf_pitooth.join()
+
+        sleep(8)
+
         rf_setup.start()
         rf_setup.join()
+
+
+
     elif args.device == 'ricoh':
         from devices.ricoh import Ricoh
         device = Ricoh()
@@ -46,6 +61,10 @@ if __name__ == '__main__':
               device.activate()
       elif args.function == 'deactivate':
             device.deactivate()
+      elif args.function == 'shutdown':
+            device.shutdown()
+      elif args.function == 'setup':
+            device.setup()
       else:
             raise ValueError
     except KeyboardInterrupt:

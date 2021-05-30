@@ -65,10 +65,13 @@ rf_pitooth.start()
 
 rf_usb.join()
 rf_pitooth.join()
-print('usb and pitooth on')
+util.log('usb and pitooth on')
+
+ricoh_activate.start()
+time.sleep(8)
 
 rf_setup.start()
-ricoh_activate.start()
+
 
 rf_setup.join()
 ricoh_activate.join()
@@ -81,7 +84,12 @@ rf_activate.start()
 
 boom.activate()
 
+time.sleep(Timing.EXTEND_TIME)
+
+
 util.log('Holding boom at extension...')
+boom.shutdown()
+
 
 time.sleep(Timing.TIME_AT_EXTENSION)
 

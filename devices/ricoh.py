@@ -17,6 +17,11 @@ import subprocess
 
 class Ricoh(Device):
 
+    def setup(self):
+        subprocess.call('sudo ptpcam --set-property=0x5003 --val="3840x1920"', shell=True)
+        #subprocess.call('sudo ptpcam --set-property=0x5003 --val="1920x960"', shell=True)
+
+
     def activate(self):
         #self._wake_up()
         time.sleep(5)
@@ -30,7 +35,7 @@ class Ricoh(Device):
 
     def deactivate(self):
         subprocess.call("sudo ptpcam -R 0x1018,0xFFFFFFFF", shell=True)	# Stops recording
-        #time.sleep(5)
+        time.sleep(2)
 
         # Get ricoh videos
         #os.system("sudo adb pull /sdcard/DCIM/100RICOH/ " + OUTPUT_FILE)	# Downloads video
