@@ -5,9 +5,13 @@ from time import sleep
 
 def is_test():
     GPIO.setup(pins.TEST_MODE_PWR)
-    GPIO.output(pins.TEST_MODE_PWR, 1)
+    GPIO.setup(pins.PRE_LAUNCH_PWR)
 
-    GPIO.setup(pins.TEST_MODE_DETECT, GPIO.IN, pull_up_down = GPIO.PUD_DOWN
+    GPIO.output(pins.TEST_MODE_PWR, 1)
+    GPIO.output(pins.PRE_LAUNCH_PWR, 1)
+
+    GPIO.setup(pins.TEST_MODE_DETECT, GPIO.IN, pull_up_down = GPIO.PUD_DOWN)
+    GPIO.setup(pins.PRE_LAUNCH_DETECT, GPIO.IN, pull_up_down = GPIO.PUD_DOWN)
 
     if GPIO.input(pins.TEST_MODE_DETECT) == 1:
         from devices.rf_experiment.rf import RF
@@ -35,23 +39,17 @@ def is_test():
         rf_activate.start()
 
 
-
-
         while True:
             sleep(1) # Doesnt continue with mission_control script
+    elif GPIO.input(pins.PRE_LAUNCH_DETECT) == 1:
 
+        # if limit switch is pressed pre-launch will begin
+        os.system('sudo /usr/local/sbin/kill-rf.sh')
+        os.system("sudo ptpcam -D")
 
-def pre_launch_setup():
-    while not limit.doorShut():
-        sleep(.1)
-
-    # if limit switch is pressed pre-launch will begin
-    os.system('sudo /usr/local/sbin/kill-rf.sh')
-    os.system("sudo ptpcam -D")
-
-    # arm battery
-    out = open('config/battery_armed.txt', "w")
-    out.write('1')
-    out.close()
+        # arm battery
+        out = open('config/launch_armed.txt', "w")
+        out.write('1')
+        out.close()
 
 

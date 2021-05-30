@@ -171,6 +171,7 @@ class RF(Device):
         self.ble.run_mainloop_with(self.__setup_thread)
         #except:
         #    pass
+        self.activate()
 
     # this is needed because the ble library is dumb and doesnt return
     def __secondary_activate(self):

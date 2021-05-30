@@ -24,7 +24,7 @@ class Timing:
 
     RF_ACTIVATE_TIME =  2*EXTEND_TIME + TIME_AT_EXTENSION
 
-    RF_CONNECT_DELAY = 10
+    RF_CONNECT_DELAY = 8
 
     # ArduCam Timing
     RECORD_TIME = (15 + EXTEND_TIME * 2 + TIME_AT_EXTENSION) * 1000 #60 seconds, Not final

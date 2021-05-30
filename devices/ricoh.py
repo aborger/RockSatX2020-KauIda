@@ -18,8 +18,8 @@ import subprocess
 class Ricoh(Device):
 
     def setup(self):
-        subprocess.call('sudo ptpcam --set-property=0x5003 --val="3840x1920"', shell=True)
-        #subprocess.call('sudo ptpcam --set-property=0x5003 --val="1920x960"', shell=True)
+        #subprocess.call('sudo ptpcam --set-property=0x5003 --val="3840x1920"', shell=True)
+        subprocess.call('sudo ptpcam --set-property=0x5003 --val="1920x960"', shell=True)
 
 
     def activate(self):
