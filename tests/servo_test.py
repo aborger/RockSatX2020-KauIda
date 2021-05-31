@@ -15,8 +15,8 @@ GPIO.setup(SERVO_PIN, GPIO.OUT)
 servo = GPIO.PWM(SERVO_PIN, 50)       # Sets servo to use PWM on servo_pin at 50 Hz
 servo.start(ZERO)
 sleep(1)
-servo.ChangeDutyCycle(ONE_EIGHTY)          # Rotates servo to 90 degrees position
+servo.ChangeDutyCycle(NINETY)          # Rotates servo to 90 degrees position
 sleep(1)
-servo.ChangeDutyCycle(ZERO)                # Sets servo to starting position
+#servo.ChangeDutyCycle(ZERO)                # Sets servo to starting position
 sleep(1)
 GPIO.cleanup()

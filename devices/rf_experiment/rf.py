@@ -24,18 +24,17 @@ import Adafruit_BluefruitLE
 from Adafruit_BluefruitLE.services import UART
 import uuid
 import dbus
-from util import log
 from time import sleep
 
 
 class RF(Device):
 
-    def __init__(self):
+    def __init__(self, log):
         self.sensor_values = [0, 0, 0, 0, 0]	# The values of the sensors that are edited by __unwrap and written to telemetry and rfOutput.csv
         self.ble = None
-
+        self.log = log
         mission_num = Files.get_mission_num()
-
+        self.log.log('Rf initialized')
         self.OUTPUT_FILE = Files.OUT_DIR + 'rf/mission' + mission_num + '.csv'
 
 
@@ -51,7 +50,11 @@ class RF(Device):
             #unwrapped_str = unwrapped_str.replace('+', '')
             #print('unwrapped:', unwrapped_str)
 
-            integer = int(unwrapped_str)
+            try:
+                integer = int(unwrapped_str)
+            except Exception as e:
+                integer = 0
+                self.log.log(e)
             self.sensor_values[sensor_ID] = integer
             return unwrapped_str
 
@@ -88,28 +91,43 @@ class RF(Device):
 
 
         adapter = self.ble.get_default_adapter()
-        adapter.power_on()
-
+        try:
+            adapter.power_on()
+        except Exception as e:
+            self.log.log(e)
+            sleep(2)
+            adapter.power_on()
         self.ble.disconnect_devices()
 
+        self.log.log('about to scan')
         try:
-            log('Scanning for devices...')
+            self.log.log('Scanning for devices...')
             adapter.start_scan()
             self.device = UART.find_device()
             if self.device is None:
                  raise RuntimeError('Failed to find UART device!')
+        except Exception as e:
+            self.log.log(e)
 
         finally:
             adapter.stop_scan()
 
         self.device.connect()
-        log('RF Connected')
+        self.log.log('RF Connected')
         # Discover Bluetooth services and characteristics
-        print('discovering...')
-        self.device.discover([SENSE_SERVICE_UUID], [RSSI_CHAR_UUID,
-                              TEMP_CHAR_UUID, PRESS_CHAR_UUID,
-                              HUM_CHAR_UUID, GAS_CHAR_UUID, ALT_CHAR_UUID])
-        print('discovered')
+        self.log.log('RF discovering...')
+        try:
+            self.device.discover([SENSE_SERVICE_UUID], [RSSI_CHAR_UUID,
+                                  TEMP_CHAR_UUID, PRESS_CHAR_UUID,
+                                  HUM_CHAR_UUID, GAS_CHAR_UUID, ALT_CHAR_UUID])
+        except Exception as e:
+            self.log.log('RF did not discover:')
+            self.log.log(e)
+            self.device.discover([SENSE_SERVICE_UUID], [RSSI_CHAR_UUID,
+                                  TEMP_CHAR_UUID, PRESS_CHAR_UUID,
+                                  HUM_CHAR_UUID, GAS_CHAR_UUID, ALT_CHAR_UUID])
+
+        self.log.log('RF discovered')
         # Find Bluetooth services and characteristics
         sensors = self.device.find_service(SENSE_SERVICE_UUID)
         self.chars = {
@@ -122,45 +140,66 @@ class RF(Device):
 	}
 
         # Setup rfOutput.csv
-        log('Setting up output file')
+        self.log.log('Setting up RF output file')
         output_file = open(self.OUTPUT_FILE, "w")
-        output_file.write('RSSI (dB),TEMP (*C),PRESSURE (hPa),HUMIDITY (%),GAS (KOhms),ALT (m)\n')
+        output_file.write('TIME SINCE TE (s),RSSI (dB),TEMP (*C),PRESSURE (hPa),HUMIDITY (%),GAS (KOhms),ALT (m)\n')
         output_file.close()
-        log('RF has been setup')
+        self.log.log('RF has been setup')
         #raise
 
     def power_usb(self):
-        print('usb start')
+        self.log.log('usb start')
         os.system('sudo /usr/local/sbin/start-rf.sh')
-        print('usb done')
+        self.log.log('usb done')
 
     def start_pitooth(self):
-        print('pitooth start')
+        self.log.log('pitooth start')
         os.system('sudo systemctl enable bluetooth')
         os.system('sudo systemctl start bluetooth')
-        print('pitooth done')
+        self.log.log('pitooth done')
 
 
     def __activate_thread(self):
         self.sensor_values = [0, 0, 0, 0, 0]	# Reset sensor values
 
         # Read sensors and unwrap.
-        rssi     = str(self.__unwrap(self.chars["rssi"].read_value(), 0))
+        rssi = str(self.__unwrap(self.chars["rssi"].read_value(), 0))
         temp     = str(self.__unwrap(self.chars["temp"].read_value(), 1))
         pressure = str(self.__unwrap(self.chars["pressure"].read_value(), 2))
         humidity = str(self.__unwrap(self.chars["humidity"].read_value(), 3))
         gas      = str(self.__unwrap(self.chars["gas"].read_value(), -1))
         alt	 = str(self.__unwrap(self.chars["alt"].read_value(), 4))
 
+
         # Output data through standard output, .csv, and telemetry
         output_file = open(self.OUTPUT_FILE, "a")
-        print(' ' + rssi + '    ' + temp + '   ' + pressure + '    ' + humidity + '    ' + gas + '    ' + alt)
-        output_file.write(rssi + ',' + temp + ',' + pressure + ',' + humidity + ',' + gas + ',' + alt + '\n')
+        print(self.log.since_epoch() + '    ' + rssi + '    ' + temp + '   ' + pressure + '    ' + humidity + '    ' + gas + '    ' + alt)
+        output_file.write(self.log.since_epoch() + ',' + rssi + ',' + temp + ',' + pressure + ',' + humidity + ',' + gas + ',' + alt + '\n')
         output_file.close()
         telemetry.write(self.sensor_values)
 
     def __deactivate_thread(self):
         self.device.disconnect()
+
+    def go(self):
+        import threading
+        rf_setup = threading.Thread(target=self.setup)
+
+        sleep(Timing.RF_CONNECT_DELAY)
+        try:
+            rf_setup.start()
+            rf_setup.join()
+        except Exception as e:
+            self.log.log('RF failed to setup:')
+            self.log.log(e)
+            try:
+                rf_setup.start()
+                rf_setup.join()
+            except Exception as e:
+                self.log.log('RF failed again:')
+                self.log.log(e)
+                return 0
+        self.activate()
 
     # These methods are inherited from device.py and are called in the main mission_control.py script
     def setup(self):
@@ -171,7 +210,7 @@ class RF(Device):
         self.ble.run_mainloop_with(self.__setup_thread)
         #except:
         #    pass
-        self.activate()
+        #self.activate()
 
     # this is needed because the ble library is dumb and doesnt return
     def __secondary_activate(self):
@@ -182,10 +221,14 @@ class RF(Device):
 
         period = 1 / Timing.RF_FREQUENCY
 
-        for run in range(0, Timing.RF_ACTIVATE_TIME):
+        for run in range(0, Timing.RF_ACTIVATE_TIME * Timing.RF_FREQUENCY):
             rf_activate = threading.Thread(target=self.__secondary_activate)
             rf_activate.daemon = True
-            rf_activate.start()
+            try:
+                rf_activate.start()
+            except Exception as e:
+                self.log.log(e)
+                self.setup()
             sleep(period)
 
     def deactivate(self):

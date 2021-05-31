@@ -36,7 +36,7 @@ class Boom(Device):
     def deactivate(self):
         GPIO.output(pins.BOOM_DIR_PIN, GPIO.HIGH)	# Reverses motor
         self.motor.start(Timing.BOOM_POWER)
-        time.sleep(10)
+        #time.sleep(Timing.EXTEND_TIME/2)
 
     def shutdown(self):
         self.motor.start(0)

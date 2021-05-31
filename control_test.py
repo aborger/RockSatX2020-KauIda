@@ -2,6 +2,8 @@ import RPi.GPIO as GPIO
 from devices.lock import Lock
 import config.pins as pins
 from time import sleep
+from config.timing import Timing
+from util import Log
 
 if __name__ == '__main__':
     import argparse
@@ -13,6 +15,7 @@ if __name__ == '__main__':
 
     device = None
     pins.setup()
+    log = Log()
 
     if args.device == 'boom':
         from devices.boom import Boom
@@ -24,10 +27,10 @@ if __name__ == '__main__':
     elif args.device == 'rf':
         import threading
         from devices.rf_experiment.rf import RF
-        device = RF()
+        device = RF(log)
         rf_usb = threading.Thread(target=device.power_usb)
         rf_pitooth = threading.Thread(target=device.start_pitooth)
-        rf_setup = threading.Thread(target=device.setup)
+        rf_go = threading.Thread(target=device.go)
 
         rf_usb.start()
         rf_pitooth.start()
@@ -35,16 +38,16 @@ if __name__ == '__main__':
         rf_usb.join()
         rf_pitooth.join()
 
-        sleep(RF_CONNECT_DELAY)
+        sleep(Timing.RF_CONNECT_DELAY)
 
-        rf_setup.start()
-        rf_setup.join()
+        rf_go.start()
+
 
 
 
     elif args.device == 'ricoh':
         from devices.ricoh import Ricoh
-        device = Ricoh()
+        device = Ricoh(log)
     elif args.device == 'arducam':
         from devices.arducam import ArduCam
         device = ArduCam()
@@ -54,16 +57,13 @@ if __name__ == '__main__':
 
     try:
       if args.function == 'activate':
-          if args.device == 'rf':
-              rf_activate = threading.Thread(target=device.activate)
-              rf_activate.start()
-          elif args.device == 'boom':
-              device.activate()
+          device.activate()
+          if args.device == 'boom':
               sleep(10)
-          else:
-              device.activate()
       elif args.function == 'deactivate':
-            device.deactivate()
+           device.deactivate()
+           if args.device == 'boom':
+               sleep(10)
       elif args.function == 'shutdown':
             device.shutdown()
       elif args.function == 'setup':
