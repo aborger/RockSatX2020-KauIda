@@ -50,7 +50,10 @@ if __name__ == '__main__':
         device = Ricoh(log)
     elif args.device == 'arducam':
         from devices.arducam import ArduCam
-        device = ArduCam()
+        device = ArduCam(log)
+    elif args.device == 'pre-launch':
+        from devices.pre_launch import Pre_launch
+        print('is active: ', Pre_launch.is_active())
 
     else:
         raise ValueError

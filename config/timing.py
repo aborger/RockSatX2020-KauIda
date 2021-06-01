@@ -19,16 +19,16 @@ class Timing:
 
     BOOM_POWER = 100	#90	# Percentage of power given to the motor
 
-    BOOM_DELAY = 0
+    BOOM_DELAY = 5
 
     RF_FREQUENCY = 2		# Rate at which rf data is taken (per second)
 
-    RF_ACTIVATE_TIME =  2*(EXTEND_TIME + 2*TIME_AT_EXTENSION) - 22
+    RF_ACTIVATE_TIME =  2*(EXTEND_TIME + TIME_AT_EXTENSION) - 5
 
     RF_CONNECT_DELAY = 8
 
 
-    ARDU_RECORD_TIME = 2000*(EXTEND_TIME + 2*TIME_AT_EXTENSION) + 7000
+    ARDU_RECORD_TIME = 362 * 1000  # TE recording: 2000*(EXTEND_TIME + 2*TIME_AT_EXTENSION) + 7000
 
 
 

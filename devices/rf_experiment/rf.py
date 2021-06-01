@@ -139,6 +139,7 @@ class RF(Device):
 	    "alt":      sensors.find_characteristic(ALT_CHAR_UUID)
 	}
 
+        self.log.log('RF Characteristics have been found')
         # Setup rfOutput.csv
         self.log.log('Setting up RF output file')
         output_file = open(self.OUTPUT_FILE, "w")
@@ -158,6 +159,9 @@ class RF(Device):
         os.system('sudo systemctl start bluetooth')
         self.log.log('pitooth done')
 
+    def disable_usb(self):
+        self.log.log('usb off')
+        os.system('sudo /usr/local/sbin/kill-rf.sh')
 
     def __activate_thread(self):
         self.sensor_values = [0, 0, 0, 0, 0]	# Reset sensor values
@@ -173,7 +177,7 @@ class RF(Device):
 
         # Output data through standard output, .csv, and telemetry
         output_file = open(self.OUTPUT_FILE, "a")
-        print(self.log.since_epoch() + '    ' + rssi + '    ' + temp + '   ' + pressure + '    ' + humidity + '    ' + gas + '    ' + alt)
+        self.log.log('  ' + rssi + '    ' + temp + '   ' + pressure + '    ' + humidity + '    ' + gas + '    ' + alt)
         output_file.write(self.log.since_epoch() + ',' + rssi + ',' + temp + ',' + pressure + ',' + humidity + ',' + gas + ',' + alt + '\n')
         output_file.close()
         telemetry.write(self.sensor_values)

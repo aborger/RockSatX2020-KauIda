@@ -6,7 +6,7 @@ class Pre_launch:
         print(os.getcwd())
         out = open('config/launch_armed.txt', "r")
         armed = out.read()
-        if armed == 1:
+        if armed == '1':
             return True
         else:
             return False

@@ -23,11 +23,13 @@ from devices.rf_experiment.rf import RF
 from devices.arducam import ArduCam
 from devices.pre_launch import Pre_launch
 
+import test_mode
 import config.pins as pins
 
 log = Log()
 log.log('Initializing...')
 
+test_mode.is_test(log)
 
 Files.iterate()
 
@@ -53,6 +55,7 @@ ardu_activate = threading.Thread(target=arduCam.activate)
 ricoh_download = threading.Thread(target=ricoh.download)
 
 log.log('Setup Complete')
+ardu_activate.start()
 
 
 log.log('Waiting for TE...')
@@ -61,11 +64,13 @@ te1.wait_for_detect()
 log.set_epoch()
 log.log('TE has been detected')
 # =============== Main ===============
-ardu_activate.start()
-rf_usb.start()
 rf_pitooth.start()
-
-rf_usb.join()
+rf.power_usb()
+time.sleep(5)
+rf.disable_usb()
+time.sleep(10)
+rf.power_usb()
+time.sleep(20)
 rf_pitooth.join()
 log.log('usb and pitooth on')
 
@@ -74,12 +79,14 @@ log.log('usb and pitooth on')
 rf_go.start()
 
 # Extend boom and take rf measurements
-time.sleep(Timing.BOOM_DELAY)
 
-log.log('Extending boom...')
 # Video 1
-ricoh.activate()
+ricoh_activate = threading.Thread(target=ricoh.activate)
+ricoh_activate.start()
+time.sleep(Timing.BOOM_DELAY)
+log.log('Extending boom...')
 lock.deactivate()
+time.sleep(1)
 boom.activate()
 time.sleep(Timing.EXTEND_TIME/2)
 boom.shutdown()
@@ -87,7 +94,9 @@ ricoh.deactivate()
 log.log('First video complete')
 
 # Video 2
-ricoh.activate()
+ricoh_activate = threading.Thread(target=ricoh.activate)
+ricoh_activate.start()
+time.sleep(1)
 boom.activate()
 time.sleep(Timing.EXTEND_TIME/2)
 
@@ -97,13 +106,15 @@ ricoh.deactivate()
 log.log('Second video complete')
 
 # Video 3
-ricoh.activate()
+ricoh_activate = threading.Thread(target=ricoh.activate)
+ricoh_activate.start()
 time.sleep(Timing.TIME_AT_EXTENSION/2)
 ricoh.deactivate()
 log.log('Third video complete')
 
 # Video 4
-ricoh.activate()
+ricoh_activate = threading.Thread(target=ricoh.activate)
+ricoh_activate.start()
 time.sleep(Timing.TIME_AT_EXTENSION/2)
 ricoh.deactivate()
 log.log('Fourth video complete')
@@ -112,7 +123,9 @@ log.log('Fourth video complete')
 log.log('Retracting boom...')
 
 # Video 5
-ricoh.activate()
+ricoh_activate = threading.Thread(target=ricoh.activate)
+ricoh_activate.start()
+time.sleep(1)
 boom.deactivate()
 time.sleep(Timing.EXTEND_TIME/2)
 boom.shutdown()
@@ -120,7 +133,9 @@ ricoh.deactivate()
 log.log('Fifth video complete')
 
 # Video 6
-ricoh.activate()
+ricoh_activate = threading.Thread(target=ricoh.activate)
+ricoh_activate.start()
+time.sleep(1)
 boom.deactivate()
 
 
@@ -130,9 +145,9 @@ while not limit.doorShut():
 log.log('Door shut detected...')
 log.log('Overdriving...')
 
-ricoh.deactivate()
+#ricoh.deactivate()
 log.log('Sixth and final video complete')
-ricoh_download.start()
+#ricoh_download.start()
 
 time.sleep(Timing.BOOM_OVER_DRIVE)
 boom.shutdown()
@@ -140,12 +155,14 @@ boom.shutdown()
 
 #=============== Cleanup ==================
 lock.activate()
-
+time.sleep(1)
 rf_go.join()
 rf_deactivate.start()
-
-ricoh_download.join()
+ricoh.deactivate()
+#ricoh_download.join()
 rf_deactivate.join()
+ricoh_download.start()
+ricoh_download.join()
 GPIO.cleanup()		# Resets all output pins to input to avoid issues
 
 if os.getcwd() != '/home/pi/RockSatX2020-KauIda':
@@ -153,8 +170,10 @@ if os.getcwd() != '/home/pi/RockSatX2020-KauIda':
 print('os.getcwd()')
 
 if Pre_launch.is_active():
+    log.log('Launch was armed, recording again!')
     ricoh.activate()
 else:
+    log.log('Launch was not armed')
     ricoh.delete()
     os.system('sudo /usr/local/sbin/kill-rf.sh')
 

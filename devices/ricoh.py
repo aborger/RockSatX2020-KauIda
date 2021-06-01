@@ -1,5 +1,4 @@
-"""
-* The Ricoh class communicates with the ricoh camera when to start and stop recording
+""" * The Ricoh class communicates with the ricoh camera when to start and stop recording
 
 * Authors: Aaron Borger <aborger@nnu.edu (307)534-6265>
 
@@ -20,10 +19,12 @@ class Ricoh(Device):
         self.log = log
 
     def setup(self):
-        subprocess.call('sudo ptpcam --set-property=0x5003 --val="3840x1920"', shell=True)
+        #subprocess.call('sudo ptpcam --set-property=0x5003 --val="3840x1920"', shell=True)
         #subprocess.call('sudo ptpcam --set-property=0x5003 --val="1920x960"', shell=True)
+        os.system("sudo ptpcam --set-property=0xd80e --val=0x00")
 
-
+    def stay_awake(self):
+        subprocess.call('sudo ptpcam -L', shell=True)
 
     def go(self):
         # Recording 1
@@ -61,6 +62,9 @@ class Ricoh(Device):
         #time.sleep(10)
         try:
             subprocess.call("sudo ptpcam -R 0x101c,0,0,1", shell=True)		# Starts recording
+        #except subprocess.TimeoutExpired as e:
+        #    sleep(0.5)
+        #    subprocess.call("sudo ptpcam -L", shell=True)
         except:
             self.log.log("rpi didnt turn on until TE")
             time.sleep(1)
@@ -71,8 +75,11 @@ class Ricoh(Device):
         subprocess.call("sudo ptpcam -D", shell=True)
 
     def deactivate(self):
+        #try:
         subprocess.call("sudo ptpcam -R 0x1018,0xFFFFFFFF", shell=True)
-
+        #except subprocess.TimeoutExpired as e:
+        #    sleep(0.5)
+        #    subprocess.call("sudo ptpcam -L", shell=True)
     def _deactivate(self):
         try:
             subprocess.call("sudo ptpcam -R 0x1018,0xFFFFFFFF", shell=True)	# Stops recording
@@ -115,14 +122,14 @@ class Ricoh(Device):
             self.log.log(e)
             self.log.log('Retrying ricoh video!')
             subprocess.call('sudo ptpcam --get-all-files', shell=True)
-            sleep(5)
+            sleep(10)
             try:
                 subprocess.call('sudo ptpcam --get-all-files', shell=True, timeout=Timing.DOWNLOAD_TIMEOUT)
             except subprocess.TimeoutExpired as e:
                 self.log.log(e)
                 self.log.log('Retrying ricoh video!')
                 subprocess.call('sudo ptpcam --get-all-files', shell=True)
-                sleep(5)
+                sleep(10)
                 subprocess.call('sudo ptpcam --get-all-files', shell=True)
         self.log.log('Ricoh videos downloaded!')
 
